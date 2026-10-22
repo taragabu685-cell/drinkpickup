@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>飲料補充チェック</title>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1c2430;--sub:#6b7686;--bd:#e1e5ea;--ac:#1f6feb;--need:#e8590c;--done:#2b8a3e;--out:#c92a2a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b222b;--tx:#e8edf3;--sub:#93a0b2;--bd:#2c3642;--ac:#5aa2ff;--need:#ff922b;--done:#51cf66;--out:#ff6b6b}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b222b;--tx:#e8edf3;--sub:#93a0b2;--bd:#2c3642;--ac:#5aa2ff;--need:#ff922b;--done:#51cf66;--out:#ff6b6b}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;max-width:560px;padding:12px 12px 80px}
+h1{font-size:18px;margin:4px 0 8px}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--done);width:0;transition:width .3s}
+.sum{font-size:13px;color:var(--sub);margin:6px 0 10px;display:flex;justify-content:space-between}
+input,select,textarea{font-size:16px;font-family:inherit}
+.srch{display:flex;gap:6px;margin-bottom:8px}
+.srch input{flex:1;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);min-width:0}
+.ib{padding:0 14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:18px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;padding:10px 2px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:12px}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;padding-bottom:2px}
+.chips button{flex:none;padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:16px;font-size:13px}.chips button.on{border-color:var(--ac);color:var(--ac);font-weight:600}
+#gm,#mf{width:100%;padding:8px;margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
+.gh{font-size:13px;font-weight:700;color:var(--sub);margin:12px 2px 6px;display:flex;justify-content:space-between}
+.item{background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.item.need{border-left-color:var(--need)}.item.done{border-left-color:var(--done);opacity:.75}.item.out{border-left-color:var(--out)}
+.nm{font-size:16px;font-weight:600}.loc{font-size:12px;color:var(--sub);margin-top:2px}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.st button{padding:10px 4px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:13px}
+.st .need.on{background:var(--need);color:#fff;border-color:var(--need)}.st .done.on{background:var(--done);color:#fff;border-color:var(--done)}.st .out.on{background:var(--out);color:#fff;border-color:var(--out)}
+.note{width:100%;margin-top:6px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.add{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:14px}
+.add input,.add select{width:100%;padding:10px;margin:4px 0;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.two{display:flex;gap:6px}
+.pri{width:100%;padding:12px;background:var(--ac);color:#fff;border:0;border-radius:10px;font-size:15px;margin-top:6px}
+.pri.g{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+.sec{background:none;border:0;color:var(--sub);font-size:12px;padding:6px;text-decoration:underline}
+.cn{margin-top:8px;padding:8px;background:var(--bg);border-radius:8px}.cr{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:13px;color:var(--sub)}.cr input{width:72px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);text-align:right}.cres{font-size:15px;margin-top:6px;color:var(--tx)}
+.vr{margin-top:8px}.vr .item{background:var(--bg);margin-bottom:6px}
+.tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
+.empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
+.cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
+.row{display:flex;justify-content:space-between;align-items:center}
+#ov{display:none;position:fixed;inset:0;background:#000;z-index:50;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 12px env(safe-area-inset-bottom,0px)}
+#vid{width:100%;max-height:60vh;object-fit:cover;border-radius:12px}
+#sm{color:#fff;font-size:14px;margin:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="row"><h1>🥤 飲料補充チェック</h1><button class="sec" id="zb" onclick="cycleZ()"></button></div>
+<div class="bar"><i id="pb"></i></div>
+<div class="sum"><span id="s1"></span><span id="s2"></span></div>
+<div class="srch"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button class="ib" onclick="openScan('search')">📷</button></div>
+<div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t1" onclick="tab(1)">発注メモ</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button></div>
+<div class="chips" id="chips"></div>
+<select id="gm" onchange="gmode=this.value;render()"><option value="shelf">表示: 売り場・棚段順</option><option value="maker">表示: メーカー別</option></select>
+<select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select>
+<div class="add" id="tForm" style="display:none;margin:0 0 10px"><b style="font-size:14px">その他のタスクを追加</b><input id="tkIn" placeholder="例: 冷ケース2段目の値札確認" onkeydown="if(event.key==='Enter')addTask()"><button class="pri" onclick="addTask()">追加する</button></div>
+<div class="add" id="mForm" style="display:none;margin:0 0 10px">
+<b style="font-size:14px">商談メモを書く</b>
+<input id="mMk" list="mks" placeholder="メーカー名">
+<input id="mD" type="date">
+<textarea id="mX" rows="5" style="width:100%;padding:10px;margin:4px 0;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)" placeholder="商談内容、決まったこと、次回までの確認事項など"></textarea>
+<button class="pri" id="mSave" onclick="saveMemo()">保存する</button>
+<button class="pri g" id="mCancel" style="display:none" onclick="clearMemo()">編集をやめる</button>
+</div>
+<div id="list"></div>
+
+<div class="add" id="fm">
+<b style="font-size:14px" id="ft">商品を追加</b>
+<input id="fN" placeholder="商品名(例: 伊右衛門 600ml)">
+<input id="fMk" list="mks" placeholder="メーカー(例: サントリー)"><datalist id="mks"></datalist>
+<input id="fSr" list="srs" placeholder="シリーズ名(例: 伊右衛門)※まとめ表示用"><datalist id="srs"></datalist>
+<div class="two"><input id="fJan" inputmode="numeric" placeholder="JAN(スキャナで読取可)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"><button class="ib" style="margin:4px 0" onclick="openScan('form')">📷</button></div>
+<input id="fPk" type="number" inputmode="numeric" min="1" placeholder="入数(1ケースの本数 例: 24)">
+<div class="two"><select id="fA"></select><select id="fSh"><option value="">棚段なし</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+<button class="pri" id="fb" onclick="submitItem()">追加する</button>
+<button class="pri g" id="fc" style="display:none" onclick="clearForm()">編集をやめる</button>
+<div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
+</div>
+<div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button><button class="sec" onclick="copyOrder()" id="cp">リストをコピー</button></div>
+
+<div class="add">
+<b style="font-size:14px">バックアップと復元</b>
+<div style="font-size:12px;color:var(--sub);margin:4px 0">「バックアップ作成」で出たテキストをメモアプリ等に貼って保管。消えたら下の枠に貼って「復元する」。</div>
+<textarea id="bk" rows="4" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:12px" placeholder="復元するときはここに貼り付け"></textarea>
+<button class="pri" onclick="makeBackup()" id="mb">バックアップ作成</button>
+<button class="pri g" onclick="restoreBackup()">復元する</button>
+</div>
+
+<div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
+
+<script>
+const KEY="hojuu-v2",OLD="hojuu-v1";
+const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
+let items=[],areas=DA.slice(),memos=[],tasks=[],mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
+const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
+try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[]}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks}))}catch(e){}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ORD={need:0,"":1,out:2,done:3};
+function tab(v){view=v;t0.className=v?"":"on";t1.className=v===1?"on":"";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";render()}
+function setCat(i){cat=cl[i];render()}
+function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
+function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
+function setM(id,v){items.find(x=>x.id===id).m=v;save()}
+function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
+function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fc.style.display="";fm.scrollIntoView({behavior:"smooth"})}
+function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fc.style.display="none"}
+function submitItem(){const n=fN.value.trim();if(!n)return;const jan=fJan.value.replace(/\D/g,"");
+ if(jan&&items.some(x=>x.jan===jan&&x.id!==editId)&&!confirm("同じバーコードの商品が登録済みです。登録しますか?"))return;
+ const o={n,mk:fMk.value.trim(),jan,a:fA.value,sh:fSh.value,pk:Number(fPk.value)||0,sr:fSr.value.trim()};
+ if(editId)Object.assign(items.find(x=>x.id===editId),o);else items.push({id:Date.now(),...o,s:"",m:""});
+ clearForm();save();render()}
+function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
+function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
+function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
+function copyOrder(){const g={};const pk=view===2;items.filter(i=>i.s===(pk?"need":"out")).forEach(i=>{const k=i.mk||"メーカー未設定";(g[k]=g[k]||[]).push(i)});
+ const t=Object.keys(g).sort().map(k=>"■"+k+"\n"+g[k].map(i=>"・"+i.n+(i.jan?" ["+i.jan+"]":"")+(pk?" "+(i.cs||1)+"ケース":(i.m?" "+i.m:""))).join("\n")).join("\n\n")||(pk?"補充対象なし":"発注対象なし");
+ try{navigator.clipboard.writeText(t);cp.textContent="コピーしました ✓";setTimeout(()=>cp.textContent="リストをコピー",1500)}catch(e){prompt("コピーしてください",t)}}
+function render(){
+ cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
+ chips.innerHTML=view?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
+ gm.style.display=view?"none":"";
+ const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
+ const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
+ mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
+ srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
+ mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
+ const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
+ pb.style.width=(items.length?(done+out)/items.length*100:0)+"%";
+ s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done} ／ 発注 ${out}`;
+ if(view===4){const nm=id=>items.find(i=>i.id===id);
+  const row=t=>{const it=nm(t.iid),free=!t.iid;return `<div class="item ${t.done?"done":"need"}"><div class="row"><div><div class="nm">${it?esc(it.n):esc(free?t.x:"(削除済み商品)")}</div>${it?`<div class="loc">${esc(it.mk||"メーカー未設定")} ・ ${esc(it.a||"未設定")}${it.sh?" "+it.sh+"段":""}</div>`:""}</div><button class="sec" onclick="delT(${t.id})">削除</button></div>${free?"":`<input class="note" placeholder="メモ(例: システム在庫12→実数8)" value="${esc(t.x)}" onchange="noteT(${t.id},this.value)">`}${it&&t.t!==1?cnt(t,it):""}<div class="st" style="grid-template-columns:1fr"><button class="${t.done?"":"done on"}" onclick="doneT(${t.id})">${t.done?"未完了に戻す":"完了にする"}</button></div></div>`};
+  const ord=t=>{const it=nm(t.iid);return it?String(Math.max(areas.indexOf(it.a),0)).padStart(2,"0")+String(it.sh||99).padStart(2,"0")+it.n:"~"+t.id};
+  const op=tasks.filter(t=>!t.done),dn=tasks.filter(t=>t.done);let h="";
+  [0,1,2,3].forEach(k=>{const g=op.filter(t=>t.t===k).sort((a,b)=>ord(a).localeCompare(ord(b),"ja"));if(g.length)h+=`<div class="gh"><span>${TN[k]}</span><span>${g.length}件</span></div>`+g.map(row).join("")});
+  if(dn.length)h+=`<div class="gh"><span>完了済み</span><span>${dn.length}件 <button class="sec" onclick="clearDone()">まとめて削除</button></span></div>`+dn.map(row).join("");
+  listEl.innerHTML=h||`<div class="empty">タスクはありません。売場巡回で商品の「在庫確認」などを押すと、ここに溜まります</div>`;return}
+ if(view===3){const ms=memos.filter(m=>(!mfv||m.mk===mfv)&&(!q||(m.mk+m.x).toLowerCase().includes(q))).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id);
+  listEl.innerHTML=ms.length?ms.map(m=>`<div class="item"><div class="row"><div><div class="nm">${esc(m.mk)}</div><div class="loc">${esc(m.d)}</div></div><div><button class="sec" onclick="editMemo(${m.id})">編集</button><button class="sec" onclick="delMemo(${m.id})">削除</button></div></div><div style="white-space:pre-wrap;margin-top:6px;font-size:14px">${esc(m.x)}</div></div>`).join(""):`<div class="empty">商談メモはまだありません</div>`;return}
+ const list=items.filter(i=>(!mfv||view>0||i.mk===mfv)&&(view===1?i.s==="out":view===2?i.s==="need":(cat==="すべて"||(i.a||"未設定")===cat))&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
+ const maker=view||gmode==="maker",G={};
+ const anySh=list.some(i=>i.sh);
+ list.forEach(i=>{let k,lb;
+  if(maker){lb=i.mk||"メーカー未設定";k=i.mk||"~"}
+  else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+i.sh+"段":(cat!=="すべて"&&anySh?"段なし":""));k=String(ai<0?99:ai).padStart(2,"0")+String(i.sh||99).padStart(2,"0")}
+  (G[k]=G[k]||{lb,a:[]}).a.push(i)});
+ const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
+ listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>ORD[a.s]-ORD[b.s]||a.n.localeCompare(b.n,"ja"));
+  return (g.lb?`<div class="gh"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>`
+ <div class="item ${i.s}"><div class="row"><div><div class="nm">${esc(i.n)}</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+i.sh+"段":""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
+ <div class="st"><button class="need ${i.s==="need"?"on":""}" onclick="setS(${i.id},'need')">要補充</button><button class="done ${i.s==="done"?"on":""}" onclick="setS(${i.id},'done')">補充済</button><button class="out ${i.s==="out"?"on":""}" onclick="setS(${i.id},'out')">在庫なし</button></div>
+ ${i.s==="out"?`<input class="note" placeholder="発注数・メモ(例: 2ケース)" value="${esc(i.m)}" onchange="setM(${i.id},this.value)">`:""}${i.s==="need"?`<div class="cs"><span>ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><span>ケース</span><button onclick="adj(${i.id},1)">＋</button>${i.pk?`<span style="color:var(--sub)">＝${(i.cs||0)*i.pk}本</span>`:""}</div>`:""}<button class="sec" onclick="tto(${i.id})" style="${tc(i.id)?"color:var(--need);font-weight:700":""}">タスク${tc(i.id)?" ●"+tc(i.id):""} ${to[i.id]?"▲":"▼"}</button>${to[i.id]?`<div class="tk">${TT.map(t=>`<button class="${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>`:""}${i.jan?`<button class="sec" onclick="tbc(${i.id})">${bo[i.id]?"バーコードを隠す":"バーコード表示"}</button>`+(bo[i.id]?bc(i.jan):""):""}</div>`).join("")}).join(""):`<div class="empty">${view===1?"発注が必要な商品はありません":view===2?"補充が必要な商品はありません":"該当する商品がありません"}</div>`;
+}
+const BL=["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"],BG=["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"],BR=["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"],BP=["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+let bo={},sb="",sT=0;
+function tbc(id){bo[id]=!bo[id];render()}
+function bits(j){let s="101",k;if(j.length===13){const p=BP[+j[0]];for(k=1;k<7;k++)s+=(p[k-1]==="L"?BL:BG)[+j[k]];s+="01010";for(k=7;k<13;k++)s+=BR[+j[k]];return s+"101"}
+ if(j.length===8){for(k=0;k<4;k++)s+=BL[+j[k]];s+="01010";for(k=4;k<8;k++)s+=BR[+j[k]];return s+"101"}return ""}
+function bc(j){if(!/^\d+$/.test(j))return "";const b=bits(j);if(!b)return `<div class="loc">表示できるのは8桁・13桁のJANのみです</div>`;let r="";
+ for(let i=0;i<b.length;i++)if(b[i]==="1"){let w=1;while(b[i+w]==="1")w++;r+=`<rect x="${i+10}" y="0" width="${w}" height="60"/>`;i+=w-1}
+ return `<svg viewBox="0 0 ${b.length+20} 78" style="width:100%;max-width:300px;background:#fff;border-radius:6px;display:block;margin-top:6px"><g fill="#000">${r}</g><text x="${(b.length+20)/2}" y="74" font-size="11" text-anchor="middle" fill="#000" font-family="monospace">${j}</text></svg>`}
+document.addEventListener("keydown",e=>{const t=e.target.tagName;if(t==="INPUT"||t==="TEXTAREA"||t==="SELECT")return;
+ const now=Date.now();if(now-sT>100)sb="";sT=now;
+ if(e.key==="Enter"){if(/^\d{8,14}$/.test(sb)){e.preventDefault();scanT="search";got(sb)}sb="";return}
+ if(/^\d$/.test(e.key))sb+=e.key});
+const listEl=document.getElementById("list");
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function saveMemo(){const mk=mMk.value.trim(),x=mX.value.trim();if(!mk||!x){alert("メーカー名とメモ内容を入力してください。");return}
+ const o={mk,d:mD.value||today(),x};
+ if(editM)Object.assign(memos.find(m=>m.id===editM),o);else memos.push({id:Date.now(),...o});
+ clearMemo();save();render()}
+function clearMemo(){editM=null;mX.value="";mMk.value=mfv;mD.value=today();mSave.textContent="保存する";mCancel.style.display="none"}
+function editMemo(id){const m=memos.find(x=>x.id===id);editM=id;mMk.value=m.mk;mD.value=m.d;mX.value=m.x;mSave.textContent="更新する";mCancel.style.display="";mForm.scrollIntoView({behavior:"smooth"})}
+const TN=["システム在庫確認","追加発注","在庫数修正","その他"],TT=[[0,"在庫確認"],[1,"追加発注"],[2,"在庫修正"]];
+const hasT=(id,t)=>tasks.some(x=>x.iid===id&&x.t===t&&!x.done);
+function togT(id,t){const k=tasks.findIndex(x=>x.iid===id&&x.t===t&&!x.done);if(k>=0)tasks.splice(k,1);else tasks.push({id:Date.now(),iid:id,t,x:"",done:false,d:today()});save();render()}
+function addTask(){const x=tkIn.value.trim();if(!x)return;tasks.push({id:Date.now(),iid:0,t:3,x,done:false,d:today()});tkIn.value="";save();render()}
+function doneT(id){const t=tasks.find(x=>x.id===id);t.done=!t.done;save();render()}
+function noteT(id,v){tasks.find(x=>x.id===id).x=v;save()}
+function delT(id){tasks=tasks.filter(x=>x.id!==id);save();render()}
+function clearDone(){if(confirm("完了済みタスクをすべて削除しますか?")){tasks=tasks.filter(x=>!x.done);save();render()}}
+function cres(t,it){const pk=it.pk||0,has=[t.cc,t.cb].some(v=>v!==undefined&&v!=="");if(!has)return "";const cc=+t.cc||0,cb=+t.cb||0;if(cc&&!pk)return "入数を入力すると本数を計算します";
+ const tot=cc*pk+cb;let s=`実数 <b>${tot}本</b>`+(pk&&tot>=pk?`(${Math.floor(tot/pk)}ケース${tot%pk?"＋"+tot%pk+"本":""})`:"");
+ if(t.sys!==undefined&&t.sys!==""){const d=tot-(+t.sys);s+=` ／ システム ${+t.sys}本 ／ `+(d===0?`<b style="color:var(--done)">一致 ✓</b>`:`差 <b style="color:var(--out)">${d>0?"+":""}${d}本</b>`)}
+ return s}
+function cnt(t,it){const v=x=>x===undefined||x===null?"":esc(x);
+ return `<div class="cn"><div class="cr"><span>入数</span><input type="number" inputmode="numeric" value="${it.pk||""}" onchange="setPk(${it.id},this.value)"><span>本/ケース</span></div><div class="cr"><span>実数</span><input type="number" inputmode="numeric" value="${v(t.cc)}" oninput="setTk(${t.id},'cc',this.value)"><span>ケース＋</span><input type="number" inputmode="numeric" value="${v(t.cb)}" oninput="setTk(${t.id},'cb',this.value)"><span>本</span></div><div class="cr"><span>システム在庫</span><input type="number" inputmode="numeric" value="${v(t.sys)}" oninput="setTk(${t.id},'sys',this.value)"><span>本</span></div><div class="cres" id="res${t.id}">${cres(t,it)}</div></div>`}
+function setTk(id,k,v){const t=tasks.find(x=>x.id===id);t[k]=v;save();const it=items.find(i=>i.id===t.iid),el=document.getElementById("res"+id);if(it&&el)el.innerHTML=cres(t,it)}
+function setPk(id,v){items.find(i=>i.id===id).pk=Math.max(0,parseInt(v)||0);save();render()}
+const ZS=[1,.9,.8],ZN=["標準","小","最小"];let zi=1;try{const v=localStorage.getItem("hojuu-zoom");if(v!==null)zi=Math.min(2,Math.max(0,+v||0))}catch(e){}
+function applyZ(){document.body.style.zoom=ZS[zi];zb.textContent="表示サイズ: "+ZN[zi]}
+function cycleZ(){zi=(zi+1)%3;try{localStorage.setItem("hojuu-zoom",zi)}catch(e){}applyZ()}
+applyZ();
+let to={};const tc=id=>tasks.filter(x=>x.iid===id&&!x.done).length;
+function tto(id){to[id]=!to[id];render()}
+let so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27");
+function tso(k){k=decodeURIComponent(k);const cur=so[k]===undefined?view>0:so[k];so[k]=!cur;render()}
+function setAllS(ids,s){ids.split(",").forEach(id=>{const it=items.find(x=>x.id==id);if(it){it.s=s;if(s==="need"&&!it.cs)it.cs=1}});save();render()}
+function series(arr,f){const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
+ arr.forEach(i=>{if(!i.sr||cnt[i.sr]<2){out.push(f(i));return}
+  if(dn[i.sr])return;dn[i.sr]=1;const m=arr.filter(x=>x.sr===i.sr),k=ek(i.sr),c=s=>m.filter(x=>x.s===s).length;
+  const open=!!q||(so[i.sr]===undefined?view>0:so[i.sr]);
+  const cls=c("need")?"need":c("out")?"out":c("done")===m.length?"done":"";
+  const bg=[["need","要補充","var(--need)"],["out","在庫なし","var(--out)"],["done","補充済","var(--done)"]].filter(b=>c(b[0])).map(b=>`<span style="color:${b[2]};font-weight:600;margin-right:8px">${b[1]} ${c(b[0])}</span>`).join("");
+  const un=m.length-c("need")-c("out")-c("done");
+  out.push(`<div class="item sr ${cls}"><div class="row"><div style="flex:1" onclick="tso('${k}')"><div class="nm">${esc(i.sr)} <span class="loc">${m.length}品 ${open?"▲":"▼"}</span></div><div class="loc">${bg}${un?"未確認 "+un:""}</div></div><button class="sec" onclick="setAllS('${m.map(x=>x.id).join(",")}','done')">全て補充済</button></div>${open?`<div class="vr">${m.map(x=>f(x)).join("")}</div>`:""}</div>`)});
+ return out}
+function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
+clearMemo();
+async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});vid.srcObject=stream;await vid.play()}catch(e){sm.textContent="カメラを使えませんでした。バーコードの数字を手入力してください。";return}
+ scanning=true;sm.textContent="バーコードを画面に映してください";
+ if("BarcodeDetector" in window){const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
+  const loop=async()=>{if(!scanning)return;try{const r=await det.detect(vid);if(r.length){got(r[0].rawValue);return}}catch(e){}setTimeout(loop,200)};loop()}
+ else if(window.ZXing){try{zr=new ZXing.BrowserMultiFormatReader();zr.decodeFromVideoElement(vid,r=>{if(r&&scanning)got(r.getText())})}catch(e){sm.textContent="スキャンに失敗しました。手入力してください。"}}
+ else sm.textContent="この端末ではスキャンできません。手入力してください。"}
+function closeScan(){scanning=false;try{zr&&zr.reset()}catch(e){}zr=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}ov.style.display="none"}
+function got(code){const t=scanT;closeScan();
+ if(t==="form"){fJan.value=code;return}
+ const f=items.find(i=>i.jan===code);
+ if(f){qin.value=code;q=code;if(view)tab(0);else render()}
+ else if(confirm("未登録のバーコードです("+code+")。商品として登録しますか?")){clearForm();fJan.value=code;fm.scrollIntoView({behavior:"smooth"});fN.focus()}}
+function makeBackup(){const t=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks});bk.value=t;bk.select();let ok=false;try{navigator.clipboard.writeText(t);ok=true}catch(e){}
+ mb.textContent=ok?"コピーしました ✓ メモに貼り付けて保管":"下のテキストを長押ししてコピーしてください";setTimeout(()=>mb.textContent="バックアップ作成",3000)}
+function restoreBackup(){let d;try{d=JSON.parse(bk.value.trim())}catch(e){alert("テキストを読み取れませんでした。バックアップ全体を貼り付けてください。");return}
+ if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
+ if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
+ items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];cat="すべて";save();render();bk.value="";alert("復元しました。")}
+render();
+</script>
+</body>
+</html>
