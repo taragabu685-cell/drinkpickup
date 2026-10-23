@@ -40,6 +40,10 @@ input,select,textarea{font-size:16px;font-family:inherit}
 .sec{background:none;border:0;color:var(--sub);font-size:12px;padding:6px;text-decoration:underline}
 .cn{margin-top:8px;padding:8px;background:var(--bg);border-radius:8px}.cr{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:13px;color:var(--sub)}.cr input{width:72px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);text-align:right}.cres{font-size:15px;margin-top:6px;color:var(--tx)}
 .vr{margin-top:8px}.vr .item{background:var(--bg);margin-bottom:6px}
+.pk{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--need);border-radius:8px;padding:4px 8px;margin-bottom:4px}.pk.d{opacity:.45;border-left-color:var(--done)}.pk.d .pn>div:first-child{text-decoration:line-through}
+.pn{flex:1;min-width:0;font-size:14px;line-height:1.25}.pn .loc{margin:0;font-size:11px}.pc{display:flex;align-items:center;gap:4px}.pc button,.pd{width:34px;height:34px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:18px}.pc b{min-width:24px;text-align:center;font-size:18px;color:var(--need)}.pb{font-size:11px;color:var(--sub);min-width:34px;text-align:right}.pd{color:var(--done);font-size:16px}
+.pk.cp{flex-wrap:wrap}.pk.cp.out{border-left-color:var(--out)}.pk.cp.done{border-left-color:var(--done);opacity:.7}.pk.cp:not(.need):not(.out):not(.done){border-left-color:var(--bd)}
+.sb{display:flex;gap:3px}.sb button{padding:8px 6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:7px;font-size:11px}.sb .need.on{background:var(--need);color:#fff;border-color:var(--need)}.sb .out.on{background:var(--out);color:#fff;border-color:var(--out)}.sb .done.on{background:var(--done);color:#fff;border-color:var(--done)}.r2{flex-basis:100%;padding-top:2px}
 .tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
 .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
 .cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
@@ -127,7 +131,7 @@ function setM(id,v){items.find(x=>x.id===id).m=v;save()}
 function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
 function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fc.style.display="";fm.scrollIntoView({behavior:"smooth"})}
 function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fc.style.display="none"}
-function submitItem(){const n=fN.value.trim();if(!n)return;const jan=fJan.value.replace(/\D/g,"");
+function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.value);
  if(jan&&items.some(x=>x.jan===jan&&x.id!==editId)&&!confirm("同じバーコードの商品が登録済みです。登録しますか?"))return;
  const o={n,mk:fMk.value.trim(),jan,a:fA.value,sh:fSh.value,pk:Number(fPk.value)||0,sr:fSr.value.trim()};
  if(editId)Object.assign(items.find(x=>x.id===editId),o);else items.push({id:Date.now(),...o,s:"",m:""});
@@ -150,7 +154,7 @@ function render(){
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?(done+out)/items.length*100:0)+"%";
- s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done} ／ 発注 ${out}`;
+ s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done} ／ 発注 ${out}`;if(view===2){const nd=items.filter(i=>i.s==="need");s1.textContent=`ピック ${nd.length}品`;s2.textContent=`合計 ${nd.reduce((s,i)=>s+(i.cs||0),0)}ケース`}
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
  if(view===4){const nm=id=>items.find(i=>i.id===id);
@@ -171,8 +175,8 @@ function render(){
   (G[k]=G[k]||{lb,a:[]}).a.push(i)});
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
  listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>ORD[a.s]-ORD[b.s]||a.n.localeCompare(b.n,"ja"));
-  return (g.lb?`<div class="gh"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>`
- <div class="item ${i.s}"><div class="row"><div><div class="nm">${esc(i.n)}</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+i.sh+"段":""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
+  return (g.lb?`<div class="gh"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&!xo[i.id]?rowS(i):`
+ <div class="item ${i.s}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+i.sh+"段":""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st"><button class="need ${i.s==="need"?"on":""}" onclick="setS(${i.id},'need')">要補充</button><button class="done ${i.s==="done"?"on":""}" onclick="setS(${i.id},'done')">補充済</button><button class="out ${i.s==="out"?"on":""}" onclick="setS(${i.id},'out')">在庫なし</button></div>
  ${i.s==="out"?`<input class="note" placeholder="発注数・メモ(例: 2ケース)" value="${esc(i.m)}" onchange="setM(${i.id},this.value)">`:""}${i.s==="need"?`<div class="cs"><span>ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><span>ケース</span><button onclick="adj(${i.id},1)">＋</button>${i.pk?`<span style="color:var(--sub)">＝${(i.cs||0)*i.pk}本</span>`:""}</div>`:""}<button class="sec" onclick="tto(${i.id})" style="${tc(i.id)?"color:var(--need);font-weight:700":""}">タスク${tc(i.id)?" ●"+tc(i.id):""} ${to[i.id]?"▲":"▼"}</button>${to[i.id]?`<div class="tk">${TT.map(t=>`<button class="${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>`:""}${i.jan?`<button class="sec" onclick="tbc(${i.id})">${bo[i.id]?"バーコードを隠す":"バーコード表示"}</button>`+(bo[i.id]?bc(i.jan):""):""}</div>`).join("")}).join(""):`<div class="empty">${view===1?"発注が必要な商品はありません":view===2?"補充が必要な商品はありません":"該当する商品がありません"}</div>`;
 }
@@ -222,7 +226,7 @@ let pm="maker",jmsg="",so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27
 function tso(k){k=decodeURIComponent(k);const cur=so[k]===undefined?view>0:so[k];so[k]=!cur;render()}
 function setAllS(ids,s){ids.split(",").forEach(id=>{const it=items.find(x=>x.id==id);if(it){it.s=s;if(s==="need"&&!it.cs)it.cs=1}});save();render()}
 function series(arr,f){const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
- arr.forEach(i=>{if(!i.sr||cnt[i.sr]<2){out.push(f(i));return}
+ arr.forEach(i=>{if(!i.sr||cnt[i.sr]<2||view===2){out.push(f(i));return}
   if(dn[i.sr])return;dn[i.sr]=1;const m=arr.filter(x=>x.sr===i.sr),k=ek(i.sr),c=s=>m.filter(x=>x.s===s).length;
   const open=!!q||(so[i.sr]===undefined?view>0:so[i.sr]);
   const cls=c("need")?"need":c("out")?"out":c("done")===m.length?"done":"";
@@ -244,7 +248,7 @@ function impPrev(){const t=im.value.replace(/^\uFEFF/,"");impR=[];imgo.style.dis
  if(col.n===undefined){imr.textContent="1行目に「商品名」の見出しが必要です。";return}
  let ne=0,up=0,sk=0;const na=[];
  rows.slice(1).forEach(r=>{const g=k=>col[k]===undefined?"":String(r[col[k]]||"").trim(),n=g("n");if(!n){sk++;return}
-  const o={n,mk:g("mk"),jan:hw(g("jan")).replace(/\D/g,""),a:g("a"),sh:(hw(g("sh")).match(/\d+/)||[""])[0],pk:Number((hw(g("pk")).match(/\d+/)||[0])[0]),sr:g("sr")};
+  const o={n,mk:g("mk"),jan:/e\+/i.test(g("jan"))?"":normJ(g("jan")),a:g("a"),sh:(hw(g("sh")).match(/\d+/)||[""])[0],pk:Number((hw(g("pk")).match(/\d+/)||[0])[0]),sr:g("sr")};
   const ex=items.find(i=>o.jan?i.jan===o.jan:(i.n===o.n&&i.mk===o.mk));
   if(o.a&&!areas.includes(o.a)&&!na.includes(o.a))na.push(o.a);
   ex?up++:ne++;impR.push({o})});
@@ -257,9 +261,11 @@ function impGo(){if(!impR.length)return;let ne=0,up=0;
   else{items.push(norm({id:Date.now()+ne+up,...o},0));ne++}});
  pruneJ();save();render();imr.textContent=`取り込みました(新規 ${ne}件、更新 ${up}件)`;im.value="";impR=[];imgo.style.display="none"}
 const ckd=c=>{let s=0;const d=c.slice(0,-1);for(let i=0;i<d.length;i++)s+=(+d[d.length-1-i])*(i%2===0?3:1);return (10-s%10)%10===+c.slice(-1)};
+function normJ(raw){let c=hw(String(raw)).replace(/\D/g,"");if(!c)return "";if(c.length<13&&!(c.length===8&&ckd(c)))c=c.padStart(13,"0");return c}
+items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});
 function pruneJ(){jstock=jstock.filter(j=>!items.some(i=>i.jan===j))}
-function jAdd(raw){const c=hw(String(raw)).replace(/\D/g,"");let m;if(!c)return;
- if(c.length!==13&&c.length!==8)m="桁数が合いません: "+c;
+function jAdd(raw){const c=normJ(raw);let m;if(!c)return;
+ if(c.length>13)m="桁数が合いません: "+c;
  else if(!ckd(c))m="読み取りミスの可能性があります: "+c;
  else if(items.some(i=>i.jan===c))m="登録済み: "+items.find(i=>i.jan===c).n;
  else if(jstock.includes(c))m="追加済み: "+c;
@@ -269,6 +275,15 @@ function delJ(c){jstock=jstock.filter(x=>x!==c);save();render()}
 function clearJ(){if(confirm("ストックをすべて削除しますか?")){jstock=[];save();render()}}
 function copyJ(m){const list=jstock.join("\n"),t=m?`次のJANコードの飲料商品について、商品名・メーカー・容量・1ケースの入数をCSV形式(カンマ区切り)で出してください。\n見出しは「商品名,メーカー,JAN,売り場,棚段,入数,シリーズ」。JANは13桁の数字のみ。売り場と棚段は空欄でよい。わからない項目は空欄にして、推測で作らないでください。説明文は付けずCSVだけを出力してください。\n\n${list}`:list;
  try{navigator.clipboard.writeText(t);jmsg=m?"調査依頼文をコピーしました":"JAN一覧をコピーしました";jm.textContent=jmsg}catch(e){prompt("コピーしてください",t)}}
+let pdn={};
+function togP(id){pdn[id]=!pdn[id];render()}
+function pickRow(i){const nm=(i.sr&&!i.n.includes(i.sr)?i.sr+" ":"")+i.n,sub=pm==="maker"?(i.a||"未設定")+(i.sh?" "+i.sh+"段":""):(i.mk||"メーカー未設定");
+ return `<div class="pk ${pdn[i.id]?"d":""}"><div class="pn"><div>${esc(nm)}</div><div class="loc">${esc(sub)}</div></div><div class="pc"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>${i.pk?`<div class="pb">${(i.cs||0)*i.pk}本</div>`:""}<button class="pd" onclick="togP(${i.id})">✓</button></div>`}
+let xo={};
+function tx(id){xo[id]=!xo[id];render()}
+function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":"")].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
+ const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
+ return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}</div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
@@ -281,7 +296,7 @@ async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カ�
 function closeScan(){scanning=false;try{zr&&zr.reset()}catch(e){}zr=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}ov.style.display="none"}
 function got(code){const t=scanT;if(t==="stock"||(view===5&&t==="search")){jAdd(code);return}closeScan();
  if(t==="form"){fJan.value=code;return}
- const f=items.find(i=>i.jan===code);
+ code=normJ(code);const f=items.find(i=>i.jan===code);
  if(f){qin.value=code;q=code;if(view)tab(0);else render()}
  else if(confirm("未登録のバーコードです("+code+")。商品として登録しますか?")){clearForm();fJan.value=code;fm.scrollIntoView({behavior:"smooth"});fN.focus()}}
 function makeBackup(){const t=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});bk.value=t;bk.select();let ok=false;try{navigator.clipboard.writeText(t);ok=true}catch(e){}
