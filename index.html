@@ -301,7 +301,7 @@ async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLoca
  mb.textContent=ok?"コピーしました ✓ ("+t.length+"文字) メモに貼り付けて保管":"下のテキストを長押しして全選択・コピーしてください ("+t.length+"文字)";setTimeout(()=>mb.textContent="バックアップ作成",4000)}
 async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  try{
-  if(/^HJ1:/.test(t)){const m=t.replace(/\s/g,"").match(/^HJ1:([A-Za-z0-9+/=]*)~(\d+)$/);
+  if(/^HJ1:/i.test(t)){const m=t.replace(/\s/g,"").match(/^HJ1:([A-Za-z0-9+/=]*)~(\d+)$/i);
    if(!m){alert("バックアップの終わりが見つかりません。テキストが途中で切れている可能性があります(貼り付けた長さ: "+t.length+"文字)。元の端末で作り直し、全体をコピーしてください。");return}
    if(m[1].length!==+m[2]){alert("テキストが途中で切れています(本来 "+m[2]+"文字、貼り付け "+m[1].length+"文字)。送信に使ったアプリで文字数制限がないか確認し、メールやメモアプリで送ってください。");return}
    j=await unzip(m[1])}
