@@ -46,6 +46,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 .pk.cp{flex-wrap:wrap}.pk.cp.out{border-left-color:var(--out)}.pk.cp.done{border-left-color:var(--done);opacity:.7}.pk.cp:not(.need):not(.out):not(.done){border-left-color:var(--bd)}
 .sb{display:flex;gap:3px}.sb button{padding:8px 6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:7px;font-size:11px}.sb .need.on{background:var(--need);color:#fff;border-color:var(--need)}.sb .out.on{background:var(--out);color:#fff;border-color:var(--out)}.sb .done.on{background:var(--done);color:#fff;border-color:var(--done)}.r2{flex-basis:100%;padding-top:2px}
 #fm{display:none}#fm.pop{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;z-index:40;margin:0;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#topBtn{display:none;position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
 #fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:26px;background:var(--ac);color:#fff;border:0;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.35);z-index:30}
 .gh.ca{background:hsl(var(--h) 70% 50% / var(--a,.16));border-left:5px solid hsl(var(--h) 65% 48%);border-radius:6px;padding:7px 10px;color:var(--tx);margin:12px 0 6px}
@@ -117,7 +118,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="imr" style="font-size:13px;margin:6px 0"></div>
 <button class="pri" id="imgo" style="display:none" onclick="impGo()">取り込む</button>
 </div>
-<div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button>
+<div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
 <div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
 
 <script>
@@ -321,6 +322,7 @@ const HUE=[210,25,140,330,50,180,270,0];
 let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
 function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
 function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fA.value="";fSh.value=""}
+window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300?"block":"none"},{passive:true});
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
