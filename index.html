@@ -44,6 +44,9 @@ input,select,textarea{font-size:16px;font-family:inherit}
 .pn{flex:1;min-width:0;font-size:14px;line-height:1.25}.pn .loc{margin:0;font-size:11px}.pc{display:flex;align-items:center;gap:4px}.pc button,.pd{width:34px;height:34px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:18px}.pc b{min-width:24px;text-align:center;font-size:18px;color:var(--need)}.pb{font-size:11px;color:var(--sub);min-width:34px;text-align:right}.pd{color:var(--done);font-size:16px}
 .pk.cp{flex-wrap:wrap}.pk.cp.out{border-left-color:var(--out)}.pk.cp.done{border-left-color:var(--done);opacity:.7}.pk.cp:not(.need):not(.out):not(.done){border-left-color:var(--bd)}
 .sb{display:flex;gap:3px}.sb button{padding:8px 6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:7px;font-size:11px}.sb .need.on{background:var(--need);color:#fff;border-color:var(--need)}.sb .out.on{background:var(--out);color:#fff;border-color:var(--out)}.sb .done.on{background:var(--done);color:#fff;border-color:var(--done)}.r2{flex-basis:100%;padding-top:2px}
+#fm{display:none}#fm.pop{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;z-index:40;margin:0;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
+#fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:26px;background:var(--ac);color:#fff;border:0;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.35);z-index:30}
 .tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
 .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
 .cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
@@ -89,7 +92,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <input id="fPk" type="number" inputmode="numeric" min="1" placeholder="入数(1ケースの本数 例: 24)">
 <div class="two"><select id="fA"></select><select id="fSh"><option value="">棚段なし</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
 <button class="pri" id="fb" onclick="submitItem()">追加する</button>
-<button class="pri g" id="fc" style="display:none" onclick="clearForm()">編集をやめる</button>
+<button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
 </div>
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button><button class="sec" onclick="copyOrder()" id="cp">リストをコピー</button></div>
@@ -111,6 +114,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="imr" style="font-size:13px;margin:6px 0"></div>
 <button class="pri" id="imgo" style="display:none" onclick="impGo()">取り込む</button>
 </div>
+<div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button>
 <div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
 
 <script>
@@ -129,13 +133,13 @@ function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
 function setM(id,v){items.find(x=>x.id===id).m=v;save()}
 function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
-function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fc.style.display="";fm.scrollIntoView({behavior:"smooth"})}
-function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fc.style.display="none"}
+function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";openForm()}
+function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する"}
 function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.value);
  if(jan&&items.some(x=>x.jan===jan&&x.id!==editId)&&!confirm("同じバーコードの商品が登録済みです。登録しますか?"))return;
  const o={n,mk:fMk.value.trim(),jan,a:fA.value,sh:fSh.value,pk:Number(fPk.value)||0,sr:fSr.value.trim()};
  if(editId)Object.assign(items.find(x=>x.id===editId),o);else items.push({id:Date.now(),...o,s:"",m:""});
- clearForm();pruneJ();save();render()}
+ closeForm();pruneJ();save();render()}
 function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
 function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
@@ -150,7 +154,7 @@ function render(){
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?(done+out)/items.length*100:0)+"%";
@@ -284,6 +288,8 @@ function tx(id){xo[id]=!xo[id];render()}
 function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":"")].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
  const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
  return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}</div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
+function openForm(){fm.classList.add("pop");bd.style.display="block"}
+function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
@@ -298,7 +304,7 @@ function got(code){const t=scanT;if(t==="stock"||(view===5&&t==="search")){jAdd(
  if(t==="form"){fJan.value=code;return}
  code=normJ(code);const f=items.find(i=>i.jan===code);
  if(f){qin.value=code;q=code;if(view)tab(0);else render()}
- else if(confirm("未登録のバーコードです("+code+")。商品として登録しますか?")){clearForm();fJan.value=code;fm.scrollIntoView({behavior:"smooth"});fN.focus()}}
+ else if(confirm("未登録のバーコードです("+code+")。商品として登録しますか?")){clearForm();fJan.value=code;openForm();fN.focus()}}
 function makeBackup(){const t=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});bk.value=t;bk.select();let ok=false;try{navigator.clipboard.writeText(t);ok=true}catch(e){}
  mb.textContent=ok?"コピーしました ✓ メモに貼り付けて保管":"下のテキストを長押ししてコピーしてください";setTimeout(()=>mb.textContent="バックアップ作成",3000)}
 function restoreBackup(){let d;try{d=JSON.parse(bk.value.trim())}catch(e){alert("テキストを読み取れませんでした。バックアップ全体を貼り付けてください。");return}
