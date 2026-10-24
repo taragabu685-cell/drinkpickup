@@ -19,8 +19,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 .srch{display:flex;gap:6px;margin-bottom:8px}
 .srch input{flex:1;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);min-width:0}
 .ib{padding:0 14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:18px}
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tabs button{flex:1;padding:10px 2px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:12px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
+.tabs button{flex:1 0 auto;padding:10px 9px;white-space:nowrap;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:12px}
 .tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;padding-bottom:2px}
 .chips button{flex:none;padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:16px;font-size:13px}.chips button.on{border-color:var(--ac);color:var(--ac);font-weight:600}
@@ -50,6 +50,9 @@ input,select,textarea{font-size:16px;font-family:inherit}
 #bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
 #fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:26px;background:var(--ac);color:#fff;border:0;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.35);z-index:30}
 .gh.ca{background:hsl(var(--h) 70% 50% / var(--a,.16));border-left:5px solid hsl(var(--h) 65% 48%);border-radius:6px;padding:7px 10px;color:var(--tx);margin:12px 0 6px}
+.pk.sx{border-left-color:var(--ac)}.pk.sx.d{border-left-color:var(--done)}.sin{width:70px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);text-align:right}.sres{min-width:54px;text-align:center;line-height:1.1}.sres b{font-size:20px;color:var(--ac)}.sres small{display:block;font-size:10px;color:var(--sub)}
+.sxg{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}.sxg label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--sub)}.sxg .sin{width:72px}.sxc .loc{margin:2px 0}
+.rb{padding:6px 8px;border:1px dashed var(--ac);background:none;color:var(--ac);border-radius:8px;font-size:15px;font-weight:700;min-width:40px}.spc{font-size:12px;color:var(--sub);min-width:38px}
 .tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
 .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
 .cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
@@ -64,10 +67,17 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="bar"><i id="pb"></i></div>
 <div class="sum"><span id="s1"></span><span id="s2"></span></div>
 <div class="srch"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button class="ib" onclick="openScan('search')">📷</button></div>
-<div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button></div>
+<div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button></div>
 <div class="chips" id="chips"></div>
 <select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・棚段順</option><option value="maker">表示: メーカー別</option></select>
 <select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select>
+<div class="add" id="sForm" style="display:none;margin:0 0 10px">
+<div class="two" style="align-items:center"><span style="font-size:13px;white-space:nowrap">参考の掛け率</span><input id="cr" type="number" inputmode="decimal" style="width:80px" onchange="setCfg()"><span style="font-size:13px">%</span><select id="cd" onchange="setCfg()"><option value="round">四捨五入</option><option value="ceil">切り上げ</option><option value="floor">切り捨て</option></select></div>
+<label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:8px 0"><input type="checkbox" id="cb" style="width:auto;margin:0" onchange="setCfg()">バーコードを全商品に常に表示</label>
+<div id="sp" style="font-size:13px;color:var(--sub);margin:6px 0"></div>
+<button class="pri g" onclick="copyIdx()">週販・投稿数リストをコピー</button>
+<button class="pri g" onclick="resetPf()">投稿済みのチェックをすべて外す</button>
+</div>
 <div class="add" id="jForm" style="display:none;margin:0 0 10px">
 <b style="font-size:14px">JANをどんどんスキャン</b>
 <div style="font-size:12px;color:var(--sub);margin:4px 0">下の枠をタップしてBluetoothスキャナーで読むと、未登録のJANが溜まります(枠を選んでいなくても読めます)。カメラでの連続スキャンもできます。登録済みの商品や読み間違いは弾きます。</div>
@@ -124,14 +134,14 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <script>
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
-let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
-const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
+let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
-try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[]}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock}))}catch(e){}}
+try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
-function tab(v){view=v;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";render()}
+function tab(v){view=v;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";render()}
 function setCat(i){cat=cl[i];render()}
 function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
@@ -155,17 +165,22 @@ function copyOrder(){const g={};const pk=view===2;items.filter(i=>i.s===(pk?"nee
  try{navigator.clipboard.writeText(t);cp.textContent="コピーしました ✓";setTimeout(()=>cp.textContent="リストをコピー",1500)}catch(e){prompt("コピーしてください",t)}}
 function render(){
  cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
- chips.innerHTML=(view!==0&&view!==2)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
+ chips.innerHTML=(view!==0&&view!==2&&view!==6)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
  gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?(done+out)/items.length*100:0)+"%";
  s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done} ／ 発注 ${out}`;if(view===2){const nd=items.filter(i=>i.s==="need");s1.textContent=`ピック ${nd.length}品`;s2.textContent=`合計 ${nd.reduce((s,i)=>s+(i.cs||0),0)}ケース`}
+ if(view===6){cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;const seen={};
+  const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
+  sp.textContent="投稿済 "+L.filter(i=>i.pf).length+" / "+L.length+"品 ・ 週販入力済 "+L.filter(i=>i.wsv!=null).length+"品";
+  const G={};L.forEach(i=>{const ai=areas.indexOf(i.a),k=String(ai<0?99:ai).padStart(2,"0");(G[k]=G[k]||{n:i.a||"未設定",hu:ai<0?7:ai,a:[]}).a.push(i)});
+  listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>(+a.sh||99)-(+b.sh||99)||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">該当する商品がありません</div>`;return}
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
  if(view===4){const nm=id=>items.find(i=>i.id===id);
@@ -301,7 +316,7 @@ async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writabl
 async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
  if(typeof DecompressionStream!=="undefined"){try{const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}catch(e){}}
  if(window.pako)return new TextDecoder().decode(pako.inflateRaw(u));throw new Error("この端末は圧縮バックアップの復元に未対応です")}
-async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});let t=j;
+async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock,cfg});let t=j;
  try{const z=await zip(j);t="HJ1:"+z+"~"+z.length}catch(e){}
  bk.value=t;bk.select();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
  mb.textContent=ok?"コピーしました ✓ ("+t.length+"文字) メモに貼り付けて保管":"下のテキストを長押しして全選択・コピーしてください ("+t.length+"文字)";setTimeout(()=>mb.textContent="バックアップ作成",4000)}
@@ -316,13 +331,27 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  }catch(e){alert("テキストを読み取れませんでした。\n先頭: "+t.slice(0,10)+" / 末尾: "+t.slice(-6)+" / 長さ: "+t.length+"文字\n原因: "+(e&&e.message||e));return}
  if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
  if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
- items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];
+ items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];cfg=Object.assign({rate:65,rd:"round"},d.cfg||{});
  items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
 const HUE=[210,25,140,330,50,180,270,0];
 let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
 function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
 function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fA.value="";fSh.value=""}
 window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300?"block":"none"},{passive:true});
+const idxOf=v=>{const x=Math.round(v*cfg.rate*100)/10000;return cfg.rd==="ceil"?Math.ceil(x):cfg.rd==="floor"?Math.floor(x):Math.round(x)};
+let bo6={};
+function tb6(id){bo6[id]=!bo6[id];render()}
+function pcH(i){return i.wsv&&i.pxn!=null?Math.round(i.pxn/i.wsv*100)+"%":""}
+function sxRow(i){const w=i.wsv,p=i.pxn,open=cfg.bc||bo6[i.id];
+ const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":""),i.pk?i.pk+"本/ケース":"",i.wd?"週販更新 "+i.wd:""].filter(x=>x&&String(x).trim()).join(" ・ ");
+ return `<div class="item sxc ${i.pf?"done":""}"><div class="row"><div class="nm" style="flex:1">${esc(i.n)}</div><button class="sec" onclick="tb6(${i.id})">${open?"バーコードを隠す":"バーコード"}</button><button class="pd" onclick="togPf(${i.id})">${i.pf?"✓":"○"}</button></div><div class="loc">${esc(sub)}</div><div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>${open?(i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`):""}</div>`}
+function setW(id,v){const i=items.find(x=>x.id===id);i.wsv=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));const t=new Date();i.wd=(t.getMonth()+1)+"/"+t.getDate();save();const r=document.getElementById("rf"+id),c=document.getElementById("pc"+id);if(r)r.textContent=i.wsv==null?"－":idxOf(i.wsv);if(c)c.textContent=pcH(i)}
+function setP(id,v){const i=items.find(x=>x.id===id);i.pxn=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));save();const c=document.getElementById("pc"+id);if(c)c.textContent=pcH(i)}
+function useRef(id){const i=items.find(x=>x.id===id);if(i.wsv==null)return;i.pxn=idxOf(i.wsv);save();render()}
+function togPf(id){const i=items.find(x=>x.id===id);i.pf=!i.pf;save();render()}
+function resetPf(){if(confirm("投稿済みのチェックをすべて外しますか?(週販と投稿数は残ります)")){items.forEach(i=>i.pf=false);save();render()}}
+function setCfg(){const r=parseFloat(cr.value);cfg.rate=isFinite(r)&&r>0?r:65;cfg.rd=cd.value;cfg.bc=cb.checked;save();render()}
+function copyIdx(){const t=items.filter(i=>i.wsv!=null||i.pxn!=null).map(i=>[i.n,i.jan||"",i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn].join("\t")).join("\n")||"入力済みの商品がありません";try{navigator.clipboard.writeText(t);sp.textContent="コピーしました(商品名・JAN・週販・投稿数)"}catch(e){prompt("コピーしてください",t)}}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
