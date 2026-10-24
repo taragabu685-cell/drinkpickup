@@ -237,7 +237,7 @@ function series(arr,f){const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]
   const cls=c("need")?"need":c("out")?"out":c("done")===m.length?"done":"";
   const bg=[["need","要補充","var(--need)"],["out","在庫なし","var(--out)"],["done","補充済","var(--done)"]].filter(b=>c(b[0])).map(b=>`<span style="color:${b[2]};font-weight:600;margin-right:8px">${b[1]} ${c(b[0])}</span>`).join("");
   const un=m.length-c("need")-c("out")-c("done");
-  out.push(`<div class="item sr ${cls}"><div class="row"><div style="flex:1" onclick="tso('${k}')"><div class="nm">${esc(i.sr)} <span class="loc">${m.length}品 ${open?"▲":"▼"}</span></div><div class="loc">${bg}${un?"未確認 "+un:""}</div></div><button class="sec" onclick="setAllS('${m.map(x=>x.id).join(",")}','done')">全て補充済</button></div>${open?`<div class="vr">${m.map(x=>f(x)).join("")}</div>`:""}</div>`)});
+  out.push(`<div class="item sr ${cls}"><div class="row"><div style="flex:1" onclick="tso('${k}')"><div class="nm">${esc(i.sr)} <span class="loc">${m.length}品 ${open?"▲":"▼"}</span></div><div class="loc">${bg}</div></div><button class="sec" onclick="setAllS('${m.map(x=>x.id).join(",")}','done')">全て補充済</button></div>${open?`<div class="vr">${m.map(x=>f(x)).join("")}</div>`:""}</div>`)});
  return out}
 const IMK=[["n",["商品名","品名","名称"]],["mk",["メーカー"]],["jan",["jan","バーコード"]],["a",["売り場","売場"]],["sh",["棚段","段"]],["pk",["入数","入り数"]],["sr",["シリーズ"]]],IMN={n:"商品名",mk:"メーカー",jan:"JAN",a:"売り場",sh:"棚段",pk:"入数",sr:"シリーズ"};
 let impR=[];
