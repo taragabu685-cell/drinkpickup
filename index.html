@@ -53,6 +53,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 .pk.sx{border-left-color:var(--ac)}.pk.sx.d{border-left-color:var(--done)}.sin{width:70px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);text-align:right}.sres{min-width:54px;text-align:center;line-height:1.1}.sres b{font-size:20px;color:var(--ac)}.sres small{display:block;font-size:10px;color:var(--sub)}
 .sxg{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}.sxg label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--sub)}.sxg .sin{width:72px}.sxc .loc{margin:2px 0}
 .rb{padding:6px 8px;border:1px dashed var(--ac);background:none;color:var(--ac);border-radius:8px;font-size:15px;font-weight:700;min-width:40px}.spc{font-size:12px;color:var(--sub);min-width:38px}
+.sb .px.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
 .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
 .cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
@@ -74,9 +75,10 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="add" id="sForm" style="display:none;margin:0 0 10px">
 <div class="two" style="align-items:center"><span style="font-size:13px;white-space:nowrap">参考の掛け率</span><input id="cr" type="number" inputmode="decimal" style="width:80px" onchange="setCfg()"><span style="font-size:13px">%</span><select id="cd" onchange="setCfg()"><option value="round">四捨五入</option><option value="ceil">切り上げ</option><option value="floor">切り捨て</option></select></div>
 <label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:8px 0"><input type="checkbox" id="cb" style="width:auto;margin:0" onchange="setCfg()">バーコードを全商品に常に表示</label>
+<label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:8px 0"><input type="checkbox" id="cb2" style="width:auto;margin:0" onchange="setCfg()">指数対象の商品だけ表示(売場巡回で「指数」を押した商品)</label>
 <div id="sp" style="font-size:13px;color:var(--sub);margin:6px 0"></div>
 <button class="pri g" onclick="copyIdx()">週販・投稿数リストをコピー</button>
-<button class="pri g" onclick="resetPf()">投稿済みのチェックをすべて外す</button>
+<button class="pri g" onclick="resetPf()">次の回に向けてリセット(投稿済み・対象の印を外す)</button>
 </div>
 <div class="add" id="jForm" style="display:none;margin:0 0 10px">
 <b style="font-size:14px">JANをどんどんスキャン</b>
@@ -135,7 +137,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
 let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
-const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,px:!!x.px,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
 try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,cfg}))}catch(e){}}
@@ -171,16 +173,16 @@ function render(){
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?(done+out)/items.length*100:0)+"%";
  s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done} ／ 発注 ${out}`;if(view===2){const nd=items.filter(i=>i.s==="need");s1.textContent=`ピック ${nd.length}品`;s2.textContent=`合計 ${nd.reduce((s,i)=>s+(i.cs||0),0)}ケース`}
- if(view===6){cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;const seen={};
-  const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
+ if(view===6){cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;cb2.checked=cfg.only!==false;const seen={};
+  const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cfg.only===false||pxAny(i))&&(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
   sp.textContent="投稿済 "+L.filter(i=>i.pf).length+" / "+L.length+"品 ・ 週販入力済 "+L.filter(i=>i.wsv!=null).length+"品";
   const G={};L.forEach(i=>{const ai=areas.indexOf(i.a),k=String(ai<0?99:ai).padStart(2,"0");(G[k]=G[k]||{n:i.a||"未設定",hu:ai<0?7:ai,a:[]}).a.push(i)});
-  listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>(+a.sh||99)-(+b.sh||99)||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">該当する商品がありません</div>`;return}
+  listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>(+a.sh||99)-(+b.sh||99)||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">${cfg.only===false?"該当する商品がありません":"指数投稿の対象がありません。売場巡回タブで商品の「指数」ボタンを押すと、ここに出ます"}</div>`;return}
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
  if(view===4){const nm=id=>items.find(i=>i.id===id);
@@ -309,7 +311,7 @@ let xo={};
 function tx(id){xo[id]=!xo[id];render()}
 function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":""),ng(i)>1?"◎"+ng(i)+"か所展開":""].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
  const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
- return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}</div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
+ return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}<button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button></div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
 function openForm(){fm.classList.add("pop");bd.style.display="block"}
 function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
 async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin="";b.forEach(x=>bin+=String.fromCharCode(x));return btoa(bin)}
@@ -344,13 +346,16 @@ function tb6(id){bo6[id]=!bo6[id];render()}
 function pcH(i){return i.wsv&&i.pxn!=null?Math.round(i.pxn/i.wsv*100)+"%":""}
 function sxRow(i){const w=i.wsv,p=i.pxn,open=cfg.bc||bo6[i.id];
  const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":""),i.pk?i.pk+"本/ケース":"",i.wd?"週販更新 "+i.wd:""].filter(x=>x&&String(x).trim()).join(" ・ ");
- return `<div class="item sxc ${i.pf?"done":""}"><div class="row"><div class="nm" style="flex:1">${esc(i.n)}</div><button class="sec" onclick="tb6(${i.id})">${open?"バーコードを隠す":"バーコード"}</button><button class="pd" onclick="togPf(${i.id})">${i.pf?"✓":"○"}</button></div><div class="loc">${esc(sub)}</div><div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>${open?(i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`):""}</div>`}
+ return `<div class="item sxc ${i.pf?"done":""}"><div class="row"><div class="nm" style="flex:1">${esc(i.n)}</div><button class="sec" onclick="tb6(${i.id})">${open?"バーコードを隠す":"バーコード"}</button><button class="sec" onclick="togPx(${i.id})">${pxAny(i)?"対象を外す":"対象にする"}</button><button class="pd" onclick="togPf(${i.id})">${i.pf?"✓":"○"}</button></div><div class="loc">${esc(sub)}</div><div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>${open?(i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`):""}</div>`}
 function setW(id,v){const i=items.find(x=>x.id===id);i.wsv=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));const t=new Date();i.wd=(t.getMonth()+1)+"/"+t.getDate();save();const r=document.getElementById("rf"+id),c=document.getElementById("pc"+id);if(r)r.textContent=i.wsv==null?"－":idxOf(i.wsv);if(c)c.textContent=pcH(i)}
 function setP(id,v){const i=items.find(x=>x.id===id);i.pxn=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));save();const c=document.getElementById("pc"+id);if(c)c.textContent=pcH(i)}
 function useRef(id){const i=items.find(x=>x.id===id);if(i.wsv==null)return;i.pxn=idxOf(i.wsv);save();render()}
 function togPf(id){const i=items.find(x=>x.id===id);i.pf=!i.pf;save();render()}
-function resetPf(){if(confirm("投稿済みのチェックをすべて外しますか?(週販と投稿数は残ります)")){items.forEach(i=>i.pf=false);save();render()}}
-function setCfg(){const r=parseFloat(cr.value);cfg.rate=isFinite(r)&&r>0?r:65;cfg.rd=cd.value;cfg.bc=cb.checked;save();render()}
+const pxAny=i=>items.some(x=>x.px&&(x===i||(i.g&&x.g===i.g)));
+function togPx(id){const i=items.find(x=>x.id===id),on=!pxAny(i);items.forEach(x=>{if(x===i||(i.g&&x.g===i.g))x.px=on});save();render()}
+function togPxI(id){const i=items.find(x=>x.id===id);i.px=!i.px;save();render()}
+function resetPf(){if(confirm("次の回に向けてリセットします。投稿済みの印と指数の対象を、すべて外します(週販と投稿数は残ります)。")){items.forEach(i=>{i.pf=false;i.px=false});save();render()}}
+function setCfg(){const r=parseFloat(cr.value);cfg.rate=isFinite(r)&&r>0?r:65;cfg.rd=cd.value;cfg.bc=cb.checked;cfg.only=cb2.checked;save();render()}
 function copyIdx(){const t=items.filter(i=>i.wsv!=null||i.pxn!=null).map(i=>[i.n,i.jan||"",i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn].join("\t")).join("\n")||"入力済みの商品がありません";try{navigator.clipboard.writeText(t);sp.textContent="コピーしました(商品名・JAN・週販・投稿数)"}catch(e){prompt("コピーしてください",t)}}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
