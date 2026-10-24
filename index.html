@@ -94,6 +94,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <input id="fPk" type="number" inputmode="numeric" min="1" placeholder="入数(1ケースの本数 例: 24)">
 <div class="two"><select id="fA"></select><select id="fSh"><option value="">棚段なし</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
 <button class="pri" id="fb" onclick="submitItem()">追加する</button>
+<button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
 </div>
@@ -123,7 +124,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
 let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
-const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done","out"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
 try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[]}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock}))}catch(e){}}
@@ -135,12 +136,15 @@ function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
 function setM(id,v){items.find(x=>x.id===id).m=v;save()}
 function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
-function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";openForm()}
-function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する"}
+function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fd.style.display="";openForm()}
+function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fd.style.display="none";dupFrom=null}
 function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.value);
- if(jan&&items.some(x=>x.jan===jan&&x.id!==editId)&&!confirm("同じバーコードの商品が登録済みです。登録しますか?"))return;
+ const src=items.find(x=>x.id===(editId||dupFrom)),ign=x=>src&&(x.id===src.id||(src.g&&x.g===src.g));
+ if(dupFrom&&!fA.value){alert("展開先の売り場を選んでください。");return}
+ if(jan&&items.some(x=>x.jan===jan&&!ign(x))&&!confirm("同じバーコードの商品が登録済みです。登録しますか?"))return;
  const o={n,mk:fMk.value.trim(),jan,a:fA.value,sh:fSh.value,pk:Number(fPk.value)||0,sr:fSr.value.trim()};
- if(editId)Object.assign(items.find(x=>x.id===editId),o);else items.push({id:Date.now(),...o,s:"",m:""});
+ if(editId){const it=items.find(x=>x.id===editId);Object.assign(it,o);if(it.g)items.filter(x=>x.g===it.g&&x!==it).forEach(x=>{x.n=o.n;x.mk=o.mk;x.jan=o.jan;x.pk=o.pk;x.sr=o.sr})}
+ else{const ni={id:Date.now(),...o,s:"",m:"",g:""};if(dupFrom){const sc=items.find(x=>x.id===dupFrom);if(sc){sc.g=sc.g||"g"+Date.now();ni.g=sc.g}}items.push(ni)}
  closeForm();pruneJ();save();render()}
 function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
 function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
@@ -255,16 +259,16 @@ function impPrev(){const t=im.value.replace(/^\uFEFF/,"");impR=[];imgo.style.dis
  let ne=0,up=0,sk=0;const na=[];
  rows.slice(1).forEach(r=>{const g=k=>col[k]===undefined?"":String(r[col[k]]||"").trim(),n=g("n");if(!n){sk++;return}
   const o={n,mk:g("mk"),jan:/e\+/i.test(g("jan"))?"":normJ(g("jan")),a:g("a"),sh:(hw(g("sh")).match(/\d+/)||[""])[0],pk:Number((hw(g("pk")).match(/\d+/)||[0])[0]),sr:g("sr")};
-  const ex=items.find(i=>o.jan?i.jan===o.jan:(i.n===o.n&&i.mk===o.mk));
+  const ex=findEx(o);
   if(o.a&&!areas.includes(o.a)&&!na.includes(o.a))na.push(o.a);
   ex?up++:ne++;impR.push({o})});
  imr.innerHTML=`新規 <b>${ne}</b>件 ／ 更新 <b>${up}</b>件 ／ 商品名なしでスキップ ${sk}件${na.length?"<br>新しい売り場: "+esc(na.join("、")):""}<br>読み取った列: ${Object.keys(col).map(k=>IMN[k]).join("、")}`;
  imgo.style.display=impR.length?"":"none"}
 function impGo(){if(!impR.length)return;let ne=0,up=0;
  impR.forEach(({o})=>{if(o.a&&!areas.includes(o.a))areas.push(o.a);
-  const ex=items.find(i=>o.jan?i.jan===o.jan:(i.n===o.n&&i.mk===o.mk));
+  const ex=findEx(o);
   if(ex){Object.keys(o).forEach(k=>{if(o[k]!==""&&o[k]!==0)ex[k]=o[k]});up++}
-  else{items.push(norm({id:Date.now()+ne+up,...o},0));ne++}});
+  else{const sib=o.jan&&items.find(i=>i.jan===o.jan),ni=norm({id:Date.now()+ne+up,...o},0);if(sib){sib.g=sib.g||"g"+Date.now()+ne;ni.g=sib.g}items.push(ni);ne++}});
  pruneJ();save();render();imr.textContent=`取り込みました(新規 ${ne}件、更新 ${up}件)`;im.value="";impR=[];imgo.style.display="none"}
 const ckd=c=>{let s=0;const d=c.slice(0,-1);for(let i=0;i<d.length;i++)s+=(+d[d.length-1-i])*(i%2===0?3:1);return (10-s%10)%10===+c.slice(-1)};
 function normJ(raw){let c=hw(String(raw)).replace(/\D/g,"");if(!c)return "";if(c.length<13&&!(c.length===8&&ckd(c)))c=c.padStart(13,"0");return c}
@@ -287,7 +291,7 @@ function pickRow(i){const nm=(i.sr&&!i.n.includes(i.sr)?i.sr+" ":"")+i.n,sub=pm=
  return `<div class="pk ${pdn[i.id]?"d":""}"><div class="pn"><div>${esc(nm)}</div><div class="loc">${esc(sub)}</div></div><div class="pc"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>${i.pk?`<div class="pb">${(i.cs||0)*i.pk}本</div>`:""}<button class="pd" onclick="togP(${i.id})">✓</button></div>`}
 let xo={};
 function tx(id){xo[id]=!xo[id];render()}
-function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":"")].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
+function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":""),ng(i)>1?"◎"+ng(i)+"か所展開":""].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
  const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
  return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}</div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
 function openForm(){fm.classList.add("pop");bd.style.display="block"}
@@ -314,6 +318,9 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];
  items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
 const HUE=[210,25,140,330,50,180,270,0];
+let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
+function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
+function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fA.value="";fSh.value=""}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
