@@ -48,6 +48,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 #fm{display:none}#fm.pop{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;z-index:40;margin:0;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 #bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
 #fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:26px;background:var(--ac);color:#fff;border:0;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.35);z-index:30}
+.gh.ca{background:hsl(var(--h) 70% 50% / var(--a,.16));border-left:5px solid hsl(var(--h) 65% 48%);border-radius:6px;padding:7px 10px;color:var(--tx);margin:12px 0 6px}
 .tk{display:flex;gap:6px;margin-top:8px}.tk button{flex:1;padding:8px 2px;border:1px dashed var(--bd);background:none;color:var(--sub);border-radius:8px;font-size:12px}.tk button.on{border:1px solid var(--ac);background:var(--ac);color:#fff;font-weight:600}
 .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px}
 .cs{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;color:var(--need)}.cs b{font-size:22px;min-width:28px;text-align:center}.cs button{width:44px;height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:20px}
@@ -174,13 +175,13 @@ function render(){
  const list=items.filter(i=>(!mfv||view>0||i.mk===mfv)&&(view===1?i.s==="out":view===2?(i.s==="need"&&(cat==="すべて"||(i.a||"未設定")===cat)):(cat==="すべて"||(i.a||"未設定")===cat))&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
  const maker=view===2?pm==="maker":gmode==="maker",G={};
  const anySh=list.some(i=>i.sh);
- list.forEach(i=>{let k,lb;
+ list.forEach(i=>{let k,lb,hu=-1;
   if(maker){lb=i.mk||"メーカー未設定";k=i.mk||"~"}
-  else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+i.sh+"段":(cat!=="すべて"&&anySh?"段なし":""));k=String(ai<0?99:ai).padStart(2,"0")+String(i.sh||99).padStart(2,"0")}
-  (G[k]=G[k]||{lb,a:[]}).a.push(i)});
+  else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+i.sh+"段":(cat!=="すべて"&&anySh?"段なし":""));k=String(ai<0?99:ai).padStart(2,"0")+String(i.sh||99).padStart(2,"0");hu=ai<0?7:ai}
+  (G[k]=G[k]||{lb,hu,sn:+i.sh||0,a:[]}).a.push(i)});
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
  listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>ORD[a.s]-ORD[b.s]||a.n.localeCompare(b.n,"ja"));
-  return (g.lb?`<div class="gh"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&!xo[i.id]?rowS(i):`
+  return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&!xo[i.id]?rowS(i):`
  <div class="item ${i.s}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+i.sh+"段":""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st"><button class="need ${i.s==="need"?"on":""}" onclick="setS(${i.id},'need')">要補充</button><button class="done ${i.s==="done"?"on":""}" onclick="setS(${i.id},'done')">補充済</button><button class="out ${i.s==="out"?"on":""}" onclick="setS(${i.id},'out')">在庫なし</button></div>
  ${i.s==="out"?`<input class="note" placeholder="発注数・メモ(例: 2ケース)" value="${esc(i.m)}" onchange="setM(${i.id},this.value)">`:""}${i.s==="need"?`<div class="cs"><span>ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><span>ケース</span><button onclick="adj(${i.id},1)">＋</button>${i.pk?`<span style="color:var(--sub)">＝${(i.cs||0)*i.pk}本</span>`:""}</div>`:""}<button class="sec" onclick="tto(${i.id})" style="${tc(i.id)?"color:var(--need);font-weight:700":""}">タスク${tc(i.id)?" ●"+tc(i.id):""} ${to[i.id]?"▲":"▼"}</button>${to[i.id]?`<div class="tk">${TT.map(t=>`<button class="${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>`:""}${i.jan?`<button class="sec" onclick="tbc(${i.id})">${bo[i.id]?"バーコードを隠す":"バーコード表示"}</button>`+(bo[i.id]?bc(i.jan):""):""}</div>`).join("")}).join(""):`<div class="empty">${view===1?"発注が必要な商品はありません":view===2?"補充が必要な商品はありません":"該当する商品がありません"}</div>`;
@@ -312,6 +313,7 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
  items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];
  items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
+const HUE=[210,25,140,330,50,180,270,0];
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
