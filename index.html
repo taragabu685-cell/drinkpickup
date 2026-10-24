@@ -101,8 +101,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <b style="font-size:14px">バックアップと復元</b>
 <div style="font-size:12px;color:var(--sub);margin:4px 0">「バックアップ作成」で出たテキストをメモアプリ等に貼って保管。消えたら下の枠に貼って「復元する」。</div>
 <textarea id="bk" rows="4" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:12px" placeholder="復元するときはここに貼り付け"></textarea>
-<button class="pri" onclick="makeBackup()" id="mb">バックアップ作成</button>
-<button class="pri g" onclick="restoreBackup()">復元する</button>
+<button class="pri" onclick="mkBk()" id="mb">バックアップ作成</button>
+<button class="pri g" onclick="rsBk()">復元する</button>
 </div>
 
 <div class="add">
@@ -290,6 +290,25 @@ function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":"")].filter(x=>x
  return `<div class="pk cp ${i.s}"><div class="pn" onclick="tx(${i.id})"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div><div class="loc">${esc(sub)}</div></div><div class="sb">${b("need","要補充")}${b("out","在庫なし")}${b("done","補充済")}</div>${i.s==="need"?`<div class="pc r2"><span class="loc">ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button><span class="loc">ケース${i.pk?" ＝"+(i.cs||0)*i.pk+"本":""}</span></div>`:""}</div>`}
 function openForm(){fm.classList.add("pop");bd.style.display="block"}
 function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
+async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin="";b.forEach(x=>bin+=String.fromCharCode(x));return btoa(bin)}
+async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}
+async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});let t=j;
+ try{const z=await zip(j);t="HJ1:"+z+"~"+z.length}catch(e){}
+ bk.value=t;bk.select();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
+ mb.textContent=ok?"コピーしました ✓ ("+t.length+"文字) メモに貼り付けて保管":"下のテキストを長押しして全選択・コピーしてください ("+t.length+"文字)";setTimeout(()=>mb.textContent="バックアップ作成",4000)}
+async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
+ try{
+  if(/^HJ1:/.test(t)){const m=t.replace(/\s/g,"").match(/^HJ1:([A-Za-z0-9+/=]*)~(\d+)$/);
+   if(!m){alert("バックアップの終わりが見つかりません。テキストが途中で切れている可能性があります(貼り付けた長さ: "+t.length+"文字)。元の端末で作り直し、全体をコピーしてください。");return}
+   if(m[1].length!==+m[2]){alert("テキストが途中で切れています(本来 "+m[2]+"文字、貼り付け "+m[1].length+"文字)。送信に使ったアプリで文字数制限がないか確認し、メールやメモアプリで送ってください。");return}
+   j=await unzip(m[1])}
+  else{const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw 0;j=t.slice(a,b+1)}
+  d=JSON.parse(j)
+ }catch(e){alert("テキストを読み取れませんでした(貼り付けた長さ: "+t.length+"文字)。途中で切れていないか、元の端末でバックアップを作り直してください。");return}
+ if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
+ if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
+ items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];
+ items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
 function delMemo(id){if(confirm("このメモを削除しますか?")){memos=memos.filter(m=>m.id!==id);save();render()}}
 clearMemo();
 async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カメラを起動中…";
