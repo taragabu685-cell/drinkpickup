@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>飲料補充チェック</title>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako_inflate.min.js"></script>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--tx:#1c2430;--sub:#6b7686;--bd:#e1e5ea;--ac:#1f6feb;--need:#e8590c;--done:#2b8a3e;--out:#c92a2a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b222b;--tx:#e8edf3;--sub:#93a0b2;--bd:#2c3642;--ac:#5aa2ff;--need:#ff922b;--done:#51cf66;--out:#ff6b6b}}
@@ -291,7 +292,9 @@ function rowS(i){const sub=[i.mk,(i.a||"")+(i.sh?" "+i.sh+"段":"")].filter(x=>x
 function openForm(){fm.classList.add("pop");bd.style.display="block"}
 function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
 async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin="";b.forEach(x=>bin+=String.fromCharCode(x));return btoa(bin)}
-async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}
+async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+ if(typeof DecompressionStream!=="undefined"){try{const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}catch(e){}}
+ if(window.pako)return new TextDecoder().decode(pako.inflateRaw(u));throw new Error("この端末は圧縮バックアップの復元に未対応です")}
 async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});let t=j;
  try{const z=await zip(j);t="HJ1:"+z+"~"+z.length}catch(e){}
  bk.value=t;bk.select();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
@@ -302,9 +305,9 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
    if(!m){alert("バックアップの終わりが見つかりません。テキストが途中で切れている可能性があります(貼り付けた長さ: "+t.length+"文字)。元の端末で作り直し、全体をコピーしてください。");return}
    if(m[1].length!==+m[2]){alert("テキストが途中で切れています(本来 "+m[2]+"文字、貼り付け "+m[1].length+"文字)。送信に使ったアプリで文字数制限がないか確認し、メールやメモアプリで送ってください。");return}
    j=await unzip(m[1])}
-  else{const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw 0;j=t.slice(a,b+1)}
-  d=JSON.parse(j)
- }catch(e){alert("テキストを読み取れませんでした(貼り付けた長さ: "+t.length+"文字)。途中で切れていないか、元の端末でバックアップを作り直してください。");return}
+  else{const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw new Error("バックアップの { } が見つかりません");j=t.slice(a,b+1)}
+  d=JSON.parse(j.replace(/[\r\n]+/g,""))
+ }catch(e){alert("テキストを読み取れませんでした。\n先頭: "+t.slice(0,10)+" / 末尾: "+t.slice(-6)+" / 長さ: "+t.length+"文字\n原因: "+(e&&e.message||e));return}
  if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
  if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
  items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];
