@@ -221,7 +221,7 @@ function render(){
   else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+shL(i.sh):(cat!=="すべて"&&anySh?"区分なし":""));k=String(ai<0?99:ai).padStart(2,"0")+shK(i.sh);hu=ai<0?7:ai}
   (G[k]=G[k]||{lb,hu,sn:parseInt(i.sh)||0,a:[]}).a.push(i)});
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
- listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>ORD[a.s]-ORD[b.s]||a.n.localeCompare(b.n,"ja"));
+ listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
   return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&(bulk||!xo[i.id])?rowS(i):`
  <div class="item ${i.s}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+shL(i.sh):""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st"><button class="need ${i.s==="need"?"on":""}" onclick="setS(${i.id},'need')">要補充</button><button class="done ${i.s==="done"?"on":""}" onclick="setS(${i.id},'done')">補充済</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button></div>
