@@ -73,7 +73,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="bar"><i id="pb"></i></div>
 <div class="sum"><span id="s1"></span><span id="s2"></span></div>
 <div class="srch"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button class="ib" onclick="openScan('search')">📷</button></div>
-<div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button></div>
+<div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t7" onclick="tab(7)">ツール</button></div>
 <div class="chips" id="chips"></div>
 <select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・区分順</option><option value="maker">表示: メーカー別</option></select>
 <select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select>
@@ -144,7 +144,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri" id="imgo" style="display:none" onclick="impGo()">取り込む</button>
 </div>
 <div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
-<div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button></span></div>
+<div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
 <div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
 <button class="pri" style="margin-top:2px" onclick="bApply()">選択した商品に適用</button></div>
@@ -160,7 +160,7 @@ try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.ma
 function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
-function tab(v){view=v;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
+function tab(v){view=v;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
 function setCat(i){cat=cl[i];render()}
 function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
@@ -193,6 +193,7 @@ function render(){
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
  s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done}`;if(view===2){const nd=items.filter(i=>i.s==="need");s1.textContent=`ピック ${nd.length}品`;s2.textContent=`合計 ${nd.reduce((s,i)=>s+(i.cs||0),0)}ケース`}
+ if(view===7){listEl.innerHTML=`<div class="add" style="margin-top:0"><b style="font-size:14px">区分の一括変更</b><div style="font-size:12px;color:var(--sub);margin:4px 0">売場巡回の一覧で商品にチェックを付けて、区分と売り場をまとめて変更します。終わったら、画面下のバーの「終了」を押します。</div><button class="pri" onclick="startBulk()">一括変更を始める</button></div>`;return}
  if(view===6){cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;cb2.checked=cfg.only!==false;const seen={};
   const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cfg.only===false||pxAny(i))&&(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
   sp.textContent="投稿済 "+L.filter(i=>i.pf).length+" / "+L.length+"品 ・ 週販入力済 "+L.filter(i=>i.wsv!=null).length+"品";
@@ -377,9 +378,10 @@ const shL=v=>v?(/^\d+$/.test(v)?"区分"+v:v):"";
 const shK=v=>v?(/^\d+$/.test(v)?"0"+String(v).padStart(4,"0"):"1"+v):"2";
 let bulk=false,bs={},curList=[],wo={};
 const bcnt=()=>Object.keys(bs).filter(k=>bs[k]).length;
-function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
+function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
  if(on){const k=bA.value;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択";topBtn.style.display="none"}}
 function togBulk(){bulk=!bulk;bs={};render()}
+function startBulk(){tab(0);bulk=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
 function bAll(){curList.forEach(i=>{bs[i.id]=true});render()}
 function bNone(){bs={};render()}
