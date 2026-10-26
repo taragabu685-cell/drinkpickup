@@ -18,6 +18,8 @@ h1{font-size:18px;margin:4px 0 8px}
 input,select,textarea{font-size:16px;font-family:inherit}
 .srch{display:flex;gap:6px;margin-bottom:8px}
 .srch input{flex:1;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);min-width:0}
+.qw{position:relative;flex:1;display:flex;min-width:0}.srch .qw input{width:100%;padding-right:38px}
+.qx{display:none;position:absolute;right:3px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:none;color:var(--sub);font-size:22px;line-height:1;border-radius:17px}
 .ib{padding:0 14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:18px}
 .tabs{display:flex;gap:3px;margin-bottom:10px;overflow-x:auto;padding-top:4px;box-shadow:inset 0 -1px 0 var(--bd);scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -72,7 +74,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="row"><h1>🥤 飲料補充チェック</h1><button class="sec" id="zb" onclick="cycleZ()"></button></div>
 <div class="bar"><i id="pb"></i></div>
 <div class="sum"><span id="s1"></span><span id="s2"></span></div>
-<div class="srch"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button class="ib" onclick="openScan('search')">📷</button></div>
+<div class="srch"><span class="qw"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button id="qx" class="qx" onclick="clearQ()" aria-label="検索語を消す">×</button></span><button class="ib" onclick="openScan('search')">📷</button></div>
+<div id="frw" style="display:none;margin:-2px 0 8px"><button class="sec" onclick="resetF()" style="color:var(--ac)">絞り込みをすべてリセット(検索・売り場・メーカー)</button></div>
 <div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t7" onclick="tab(7)">ツール</button></div>
 <div class="chips" id="chips"></div>
 <select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・区分順</option><option value="maker">表示: メーカー別</option></select>
@@ -188,7 +191,7 @@ function render(){
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv)?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
@@ -381,6 +384,8 @@ const bcnt=()=>Object.keys(bs).filter(k=>bs[k]).length;
 function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
  if(on){const k=bA.value;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択";topBtn.style.display="none"}}
 function togBulk(){bulk=!bulk;bs={};render()}
+function clearQ(){q="";qin.value="";render();try{qin.focus()}catch(e){}}
+function resetF(){q="";qin.value="";cat="すべて";mfv="";render()}
 function startBulk(){tab(0);bulk=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
 function bAll(){curList.forEach(i=>{bs[i.id]=true});render()}
