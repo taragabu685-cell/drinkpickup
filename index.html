@@ -205,7 +205,7 @@ function render(){
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
  if(view===4){const nm=id=>items.find(i=>i.id===id);
-  const row=t=>{const it=nm(t.iid),free=!t.iid;return `<div class="item ${t.done?"done":"need"}"><div class="row"><div><div class="nm">${it?esc(it.n):esc(free?t.x:"(削除済み商品)")}</div>${it?`<div class="loc">${esc(it.mk||"メーカー未設定")} ・ ${esc(it.a||"未設定")}${it.sh?" "+shL(it.sh):""}</div>`:""}</div><button class="sec" onclick="delT(${t.id})">削除</button></div>${free?"":`<input class="note" placeholder="メモ(例: システム在庫12→実数8)" value="${esc(t.x)}" onchange="noteT(${t.id},this.value)">`}${it&&t.t!==1?cnt(t,it):""}<div class="st" style="grid-template-columns:1fr"><button class="${t.done?"":"done on"}" onclick="doneT(${t.id})">${t.done?"未完了に戻す":"完了にする"}</button></div></div>`};
+  const row=t=>{const it=nm(t.iid),free=!t.iid;return `<div class="item ${t.done?"done":"need"}"><div class="row"><div><div class="nm">${it?esc(it.n):esc(free?t.x:"(削除済み商品)")}</div>${it?`<div class="loc">${esc(it.mk||"メーカー未設定")} ・ ${esc(it.a||"未設定")}${it.sh?" "+shL(it.sh):""}</div>`:""}</div><button class="sec" onclick="delT(${t.id})">削除</button></div>${free?"":`<input class="note" placeholder="メモ(例: システム在庫12→実数8)" value="${esc(t.x)}" onchange="noteT(${t.id},this.value)">`}${t.t===0&&it?triage(t):""}${it&&t.t!==1?cntBox(t,it):""}<div class="st" style="grid-template-columns:1fr"><button class="${t.done?"":"done on"}" onclick="doneT(${t.id})">${t.done?"未完了に戻す":"完了にする"}</button></div></div>`};
   const ord=t=>{const it=nm(t.iid);return it?String(Math.max(areas.indexOf(it.a),0)).padStart(2,"0")+shK(it.sh)+it.n:"~"+t.id};
   const op=tasks.filter(t=>!t.done),dn=tasks.filter(t=>t.done);let h="";
   [0,1,2,3].forEach(k=>{const g=op.filter(t=>t.t===k).sort((a,b)=>ord(a).localeCompare(ord(b),"ja"));if(g.length)h+=`<div class="gh"><span>${TN[k]}</span><span>${g.length}件</span></div>`+g.map(row).join("")});
@@ -247,7 +247,7 @@ function saveMemo(){const mk=mMk.value.trim(),x=mX.value.trim();if(!mk||!x){aler
  clearMemo();save();render()}
 function clearMemo(){editM=null;mX.value="";mMk.value=mfv;mD.value=today();mSave.textContent="保存する";mCancel.style.display="none"}
 function editMemo(id){const m=memos.find(x=>x.id===id);editM=id;mMk.value=m.mk;mD.value=m.d;mX.value=m.x;mSave.textContent="更新する";mCancel.style.display="";mForm.scrollIntoView({behavior:"smooth"})}
-const TN=["システム在庫確認","追加発注","在庫数修正","その他"],TT=[[0,"在庫確認"],[1,"追加発注"]];
+const TN=["システム在庫確認","追加発注","在庫数修正","その他"],TT=[[0,"在庫確認"]];
 const hasT=(id,t)=>tasks.some(x=>x.iid===id&&x.t===t&&!x.done);
 function togT(id,t){const k=tasks.findIndex(x=>x.iid===id&&x.t===t&&!x.done);if(k>=0)tasks.splice(k,1);else tasks.push({id:Date.now(),iid:id,t,x:"",done:false,d:today()});save();render()}
 function addTask(){const x=tkIn.value.trim();if(!x)return;tasks.push({id:Date.now(),iid:0,t:3,x,done:false,d:today()});tkIn.value="";save();render()}
@@ -259,6 +259,11 @@ function cres(t,it){const pk=it.pk||0,has=[t.cc,t.cb].some(v=>v!==undefined&&v!=
  const tot=cc*pk+cb;let s=`実数 <b>${tot}本</b>`+(pk&&tot>=pk?`(${Math.floor(tot/pk)}ケース${tot%pk?"＋"+tot%pk+"本":""})`:"");
  if(t.sys!==undefined&&t.sys!==""){const d=tot-(+t.sys);s+=` ／ システム ${+t.sys}本 ／ `+(d===0?`<b style="color:var(--done)">一致 ✓</b>`:`差 <b style="color:var(--out)">${d>0?"+":""}${d}本</b>`)}
  return s}
+let co={};
+function tco(id){co[id]=!co[id];render()}
+function setR(id,k){const t=tasks.find(x=>x.id===id);t.r=t.r===k?"":k;save();render()}
+function triage(t){const b=(k,c,l)=>`<button class="${c} ${t.r===k?"on":""}" onclick="setR(${t.id},'${k}')">${l}</button>`;return `<div class="st" style="grid-template-columns:1fr 1fr">${b("out","out","在庫なし")}${b("order","need","要発注")}</div>`}
+function cntBox(t,it){const open=co[t.id],sm=cres(t,it);return `<button class="sec" onclick="tco(${t.id})">本数を数える ${open?"▲":"▼"}</button>`+(open?cnt(t,it):(sm?`<div class="cres" style="font-size:13px;margin:2px 0 4px">${sm}</div>`:""))}
 function cnt(t,it){const v=x=>x===undefined||x===null?"":esc(x);
  return `<div class="cn"><div class="cr"><span>入数</span><input type="number" inputmode="numeric" value="${it.pk||""}" onchange="setPk(${it.id},this.value)"><span>本/ケース</span></div><div class="cr"><span>実数</span><input type="number" inputmode="numeric" value="${v(t.cc)}" oninput="setTk(${t.id},'cc',this.value)"><span>ケース＋</span><input type="number" inputmode="numeric" value="${v(t.cb)}" oninput="setTk(${t.id},'cb',this.value)"><span>本</span></div><div class="cr"><span>システム在庫</span><input type="number" inputmode="numeric" value="${v(t.sys)}" oninput="setTk(${t.id},'sys',this.value)"><span>本</span></div><div class="cres" id="res${t.id}">${cres(t,it)}</div></div>`}
 function setTk(id,k,v){const t=tasks.find(x=>x.id===id);t[k]=v;save();const it=items.find(i=>i.id===t.iid),el=document.getElementById("res"+id);if(it&&el)el.innerHTML=cres(t,it)}
