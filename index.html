@@ -280,7 +280,7 @@ function tto(id){to[id]=!to[id];render()}
 let pm="maker",jmsg="",so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27");
 function tso(k){k=decodeURIComponent(k);const cur=so[k]===undefined?view>0:so[k];so[k]=!cur;render()}
 function setAllS(ids,s){ids.split(",").forEach(id=>{const it=items.find(x=>x.id==id);if(it){it.s=s;if(s==="need"&&!it.cs)it.cs=1}});save();render()}
-function series(arr,f){if(bulk&&view===0)return arr.map(f);const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
+function series(arr,f){if(view===0)return arr.map(f);const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
  arr.forEach(i=>{if(!i.sr||cnt[i.sr]<2||view===2){out.push(f(i));return}
   if(dn[i.sr])return;dn[i.sr]=1;const m=arr.filter(x=>x.sr===i.sr),k=ek(i.sr),c=s=>m.filter(x=>x.s===s).length;
   const open=!!q||(so[i.sr]===undefined?view>0:so[i.sr]);
