@@ -119,6 +119,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <input id="fPk" type="number" inputmode="numeric" min="1" placeholder="入数(1ケースの本数 例: 24)">
 <div class="two"><select id="fA"></select><input id="fSh" list="shs" placeholder="区分(例: 2)"></div>
 <button class="pri" id="fb" onclick="submitItem()">追加する</button>
+<button class="pri g" id="fd2" style="display:none" onclick="cloneItem(editId)">⧉ この商品を複製して新規作成(JANは空欄)</button>
 <button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
@@ -178,8 +179,9 @@ function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
 function setM(id,v){items.find(x=>x.id===id).m=v;save()}
 function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
-function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fd.style.display="";openForm()}
-function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fd.style.display="none";dupFrom=null}
+function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fd.style.display="";fd2.style.display="";openForm()}
+function cloneItem(id){const i=items.find(x=>x.id===id);if(!i)return;clearForm();fN.value=i.n;fMk.value=i.mk;fJan.value="";fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を複製(名前とJANを変えて追加)";fb.textContent="追加する";openForm();try{fN.focus();fN.select()}catch(e){}}
+function clearForm(){editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fd.style.display="none";fd2.style.display="none";dupFrom=null}
 function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.value);
  const src=items.find(x=>x.id===(editId||dupFrom)),ign=x=>src&&(x.id===src.id||(src.g&&x.g===src.g));
  if(dupFrom&&!fA.value){alert("展開先の売り場を選んでください。");return}
@@ -234,7 +236,7 @@ function render(){
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
  listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
   return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&(bulk||!xo[i.id])?rowS(i):`
- <div class="item ${i.s}" style="${srS(i)}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+shL(i.sh):""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
+ <div class="item ${i.s}" style="${srS(i)}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+shL(i.sh):""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="cloneItem(${i.id})">複製</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st" style="grid-template-columns:1fr 1fr"><button class="rp ${i.s} ${i.s?"on":""}" onclick="cycS(${i.id})">${i.s==="need"?"要補充":i.s==="done"?"補充済":"補充"}</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button></div>
  ${i.s==="need"?`<div class="cs"><span>ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><span>ケース</span><button onclick="adj(${i.id},1)">＋</button>${i.pk?`<span style="color:var(--sub)">＝${(i.cs||0)*i.pk}本</span>`:""}</div>`:""}<button class="sec" onclick="two(${i.id})">週販・指数${i.wsv!=null||i.pxn!=null?" "+(i.wsv==null?"－":i.wsv)+" / "+(i.pxn==null?"－":i.pxn):""} ${wo[i.id]?"▲":"▼"}</button>${wo[i.id]?wsBlock(i):""}<button class="sec" onclick="tto(${i.id})" style="${tc(i.id)?"color:var(--need);font-weight:700":""}">タスク${tc(i.id)?" ●"+tc(i.id):""} ${to[i.id]?"▲":"▼"}</button>${to[i.id]?`<div class="tk">${TT.map(t=>`<button class="${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>`:""}${i.jan?`<button class="sec" onclick="tbc(${i.id})">${bo[i.id]?"バーコードを隠す":"バーコード表示"}</button>`+(bo[i.id]?bc(i.jan):""):""}</div>`).join("")}).join(""):`<div class="empty">${view===1?"発注が必要な商品はありません":view===2?"補充が必要な商品はありません":"該当する商品がありません"}</div>`;
 }
@@ -375,7 +377,7 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
 const HUE=[210,25,140,330,50,180,270,0];
 let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
 function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
-function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fA.value="";fSh.value=""}
+function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fd2.style.display="none";fA.value="";fSh.value=""}
 window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300&&!(bulk&&view===0)?"block":"none"},{passive:true});
 const idxOf=v=>{const x=Math.round(v*cfg.rate*100)/10000;return cfg.rd==="ceil"?Math.ceil(x):cfg.rd==="floor"?Math.floor(x):Math.round(x)};
 let bo6={},o1=-1,sxOrd=[],o1x=0;
