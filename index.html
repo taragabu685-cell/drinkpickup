@@ -241,8 +241,8 @@ function tbt(id){bo["t"+id]=!bo["t"+id];render()}
 function bits(j){let s="101",k;if(j.length===13){const p=BP[+j[0]];for(k=1;k<7;k++)s+=(p[k-1]==="L"?BL:BG)[+j[k]];s+="01010";for(k=7;k<13;k++)s+=BR[+j[k]];return s+"101"}
  if(j.length===8){for(k=0;k<4;k++)s+=BL[+j[k]];s+="01010";for(k=4;k<8;k++)s+=BR[+j[k]];return s+"101"}return ""}
 function bc(j){if(!/^\d+$/.test(j))return "";const b=bits(j);if(!b)return `<div class="loc">表示できるのは8桁・13桁のJANのみです</div>`;let r="";
- for(let i=0;i<b.length;i++)if(b[i]==="1"){let w=1;while(b[i+w]==="1")w++;r+=`<rect x="${i+10}" y="0" width="${w}" height="60"/>`;i+=w-1}
- return `<svg viewBox="0 0 ${b.length+20} 78" style="width:100%;max-width:300px;background:#fff;border-radius:6px;display:block;margin-top:6px"><g fill="#000">${r}</g><text x="${(b.length+20)/2}" y="74" font-size="11" text-anchor="middle" fill="#000" font-family="monospace">${j}</text></svg>`}
+ for(let i=0;i<b.length;i++)if(b[i]==="1"){let w=1;while(b[i+w]==="1")w++;r+=`<rect x="${i+10}" y="0" width="${w}" height="34"/>`;i+=w-1}
+ return `<svg viewBox="0 0 ${b.length+20} 48" style="width:100%;max-width:210px;background:#fff;border-radius:6px;display:block;margin-top:6px"><g fill="#000">${r}</g><text x="${(b.length+20)/2}" y="44" font-size="10" text-anchor="middle" fill="#000" font-family="monospace">${j}</text></svg>`}
 document.addEventListener("keydown",e=>{const t=e.target.tagName;if(t==="INPUT"||t==="TEXTAREA"||t==="SELECT")return;
  const now=Date.now();if(now-sT>100)sb="";sT=now;
  if(e.key==="Enter"){if(/^\d{8,14}$/.test(sb)){e.preventDefault();scanT="search";got(sb)}sb="";return}
