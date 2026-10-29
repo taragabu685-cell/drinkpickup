@@ -134,14 +134,14 @@ input,select,textarea{font-size:16px;font-family:inherit}
 
 <div class="add">
 <b style="font-size:14px">スプレッドシートへ出力</b>
-<div style="font-size:12px;color:var(--sub);margin:4px 0">全商品の情報(商品名・メーカー・JAN・売り場・区分・入数・シリーズ・週販・投稿数)を表で出力します。「表をコピー」を押して、スプレッドシートのセルを選んで貼り付けてください。出力した表は、そのまま下の「取り込み」にも使えます。</div>
+<div style="font-size:12px;color:var(--sub);margin:4px 0">全商品の情報(商品名・メーカー・JAN・売り場・区分・入数・シリーズ・週販・投稿数・週販日)を表で出力します。「表をコピー」を押して、スプレッドシートのセルを選んで貼り付けてください。出力した表は、そのまま下の「取り込み」にも使えます。</div>
 <button class="pri" onclick="exportCopy()">表をコピー</button>
 <button class="pri g" onclick="exportCsv()">CSVファイルを保存</button>
 <div id="exm" style="font-size:12px;color:var(--sub);margin-top:6px"></div>
 </div>
 <div class="add">
 <b style="font-size:14px">スプレッドシートから取り込み</b>
-<div style="font-size:12px;color:var(--sub);margin:4px 0">表の1行目に見出し(商品名・メーカー・JAN・売り場・区分・入数・シリーズ・週販・投稿数)を付け、表をコピーして下の枠に貼り付けます。商品名以外の列は無くてもOK。JANが同じ商品は更新、新しい商品は追加されます。</div>
+<div style="font-size:12px;color:var(--sub);margin:4px 0">表の1行目に見出し(商品名・メーカー・JAN・売り場・区分・入数・シリーズ・週販・投稿数・週販日)を付け、表をコピーして下の枠に貼り付けます。商品名以外の列は無くてもOK。JANが同じ商品は更新、新しい商品は追加されます。</div>
 <textarea id="im" rows="4" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:12px" placeholder="ここに表を貼り付け"></textarea>
 <input type="file" accept=".csv,.tsv,.txt" onchange="impFile(this)" style="font-size:13px">
 <button class="pri g" onclick="impPrev()">内容を確認</button>
@@ -167,6 +167,8 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const ORD={need:0,"":1,out:2,done:3};
 function tab(v){view=v;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
 function setCat(i){cat=cl[i];render()}
+function wdL(d){const m=String(d).match(/^(\d{4})-(\d\d)-(\d\d)$/);if(!m)return d;return (+m[1]===new Date().getFullYear()?"":m[1]+"/")+(+m[2])+"/"+(+m[3])}
+function pdate(v){v=hw(String(v||"")).trim();let m=v.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})$/);if(m){const n=new Date();let y=n.getFullYear();if(new Date(y,m[1]-1,m[2])>n)y--;return y+"-"+String(m[1]).padStart(2,"0")+"-"+String(m[2]).padStart(2,"0")}return ""}
 function srH(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return (h%24)*15}
 function srS(i){if(!i.sr)return "";const h=srH(i.sr),c=`hsl(${h} 30% 42% / .24)`;return `background-image:linear-gradient(${c},${c})`}
 function cycS(id){const it=items.find(x=>x.id===id);it.s=it.s===""?"need":it.s==="need"?"done":"";if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
@@ -291,7 +293,7 @@ function series(arr,f){if(view===0)return arr.map(f);const cnt={};arr.forEach(i=
   const un=m.length-c("need")-c("out")-c("done");
   out.push(`<div class="item sr ${cls}"><div class="row"><div style="flex:1" onclick="tso('${k}')"><div class="nm">${esc(i.sr)} <span class="loc">${m.length}品 ${open?"▲":"▼"}</span></div><div class="loc">${bg}</div></div><button class="sec" onclick="setAllS('${m.map(x=>x.id).join(",")}','done')">全て補充済</button></div>${open?`<div class="vr">${m.map(x=>f(x)).join("")}</div>`:""}</div>`)});
  return out}
-const IMK=[["n",["商品名","品名","名称"]],["mk",["メーカー"]],["jan",["jan","バーコード"]],["a",["売り場","売場"]],["sh",["区分","棚段","段"]],["pk",["入数","入り数"]],["sr",["シリーズ"]],["wsv",["週販"]],["pxn",["投稿数","投稿"]]],IMN={n:"商品名",mk:"メーカー",jan:"JAN",a:"売り場",sh:"区分",pk:"入数",sr:"シリーズ",wsv:"週販",pxn:"投稿数"};
+const IMK=[["n",["商品名","品名","名称"]],["mk",["メーカー"]],["jan",["jan","バーコード"]],["a",["売り場","売場"]],["sh",["区分","棚段","段"]],["pk",["入数","入り数"]],["sr",["シリーズ"]],["wd",["週販日","入力日"]],["wsv",["週販"]],["pxn",["投稿数","投稿"]]],IMN={n:"商品名",mk:"メーカー",jan:"JAN",a:"売り場",sh:"区分",pk:"入数",sr:"シリーズ",wsv:"週販",pxn:"投稿数",wd:"週販日"};
 let impR=[];
 const hw=s=>String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-65248));
 function csvParse(t,d){const r=[];let row=[],c="",q=false;for(let i=0;i<t.length;i++){const ch=t[i];
@@ -306,7 +308,7 @@ function impPrev(){const t=im.value.replace(/^\uFEFF/,"");impR=[];imgo.style.dis
  let ne=0,up=0,sk=0;const na=[];
  rows.slice(1).forEach(r=>{const g=k=>col[k]===undefined?"":String(r[col[k]]||"").trim(),n=g("n");if(!n){sk++;return}
   const o={n,mk:g("mk"),jan:/e\+/i.test(g("jan"))?"":normJ(g("jan")),a:g("a"),sh:hw(g("sh")).trim().replace(/^(\d+)段$/,"$1").replace(/^区分(\d+)$/,"$1"),pk:Number((hw(g("pk")).match(/\d+/)||[0])[0]),sr:g("sr")};
-  {const wv=hw(g("wsv")).replace(/[^\d.]/g,""),pv=hw(g("pxn")).replace(/[^\d.]/g,"");if(wv!=="")o.wsv=Math.round(+wv);if(pv!=="")o.pxn=Math.round(+pv)}
+  {const wv=hw(g("wsv")).replace(/[^\d.]/g,""),pv=hw(g("pxn")).replace(/[^\d.]/g,"");if(wv!=="")o.wsv=Math.round(+wv);if(pv!=="")o.pxn=Math.round(+pv);const dv=pdate(g("wd"));if(dv)o.wd=dv}
   const ex=findEx(o);
   if(o.a&&!areas.includes(o.a)&&!na.includes(o.a))na.push(o.a);
   ex?up++:ne++;impR.push({o})});
@@ -375,9 +377,9 @@ let bo6={};
 function tb6(id){bo6[id]=!bo6[id];render()}
 function pcH(i){return i.wsv&&i.pxn!=null?Math.round(i.pxn/i.wsv*100)+"%":""}
 function sxRow(i){const open=cfg.bc||bo6[i.id];
- const sub=[i.mk,(i.a||"")+(i.sh?" "+shL(i.sh):""),i.pk?i.pk+"本/ケース":"",i.wd?"週販更新 "+i.wd:""].filter(x=>x&&String(x).trim()).join(" ・ ");
+ const sub=[i.mk,(i.a||"")+(i.sh?" "+shL(i.sh):""),i.pk?i.pk+"本/ケース":""].filter(x=>x&&String(x).trim()).join(" ・ ");
  return `<div class="item sxc ${i.pf?"done":""}"><div class="row"><div class="nm" style="flex:1">${esc(i.n)}</div><button class="sec" onclick="tb6(${i.id})">${open?"バーコードを隠す":"バーコード"}</button><button class="sec" onclick="togPx(${i.id})">${pxAny(i)?"対象を外す":"対象にする"}</button><button class="pd" onclick="togPf(${i.id})">${i.pf?"✓":"○"}</button></div><div class="loc">${esc(sub)}</div>${wsBlock(i)}${open?(i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`):""}</div>`}
-function setW(id,v){const i=items.find(x=>x.id===id);i.wsv=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));const t=new Date();i.wd=(t.getMonth()+1)+"/"+t.getDate();save();const r=document.getElementById("rf"+id),c=document.getElementById("pc"+id);if(r)r.textContent=i.wsv==null?"－":idxOf(i.wsv);if(c)c.textContent=pcH(i)}
+function setW(id,v){const i=items.find(x=>x.id===id);i.wsv=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));i.wd=i.wsv==null?"":today();save();const r=document.getElementById("rf"+id),c=document.getElementById("pc"+id);if(r)r.textContent=i.wsv==null?"－":idxOf(i.wsv);if(c)c.textContent=pcH(i);const d=document.getElementById("wd"+id);if(d)d.textContent=i.wd?wdL(i.wd)+"入力":""}
 function setP(id,v){const i=items.find(x=>x.id===id);i.pxn=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));save();const c=document.getElementById("pc"+id);if(c)c.textContent=pcH(i)}
 function useRef(id){const i=items.find(x=>x.id===id);if(i.wsv==null)return;i.pxn=idxOf(i.wsv);save();render()}
 function togPf(id){const i=items.find(x=>x.id===id);i.pf=!i.pf;save();render()}
@@ -407,10 +409,10 @@ function bApply(){const ids=Object.keys(bs).filter(k=>bs[k]);if(!ids.length){ale
  items.forEach(i=>{if(!bs[i.id])return;if(a)i.a=a;if(c)i.sh="";else if(s)i.sh=s});
  bs={};bS.value="";bC.checked=false;save();render()}
 function two(id){wo[id]=!wo[id];render()}
-function wsBlock(i){const w=i.wsv,p=i.pxn;return `<div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>`}
+function wsBlock(i){const w=i.wsv,p=i.pxn;return `<div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc" id="wd${i.id}">${i.wd?wdL(i.wd)+"入力":""}</span><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>`}
 function cpy(t){return new Promise(res=>{const fb=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();res(ok)}catch(e){res(false)}};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>res(true),fb)}else fb()})}
-const EXH=["商品名","メーカー","JAN","売り場","区分","入数","シリーズ","週販","投稿数"];
-const exRows=()=>items.map(i=>[i.n,i.mk,i.jan,i.a,i.sh,i.pk||"",i.sr,i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn]);
+const EXH=["商品名","メーカー","JAN","売り場","区分","入数","シリーズ","週販","投稿数","週販日"];
+const exRows=()=>items.map(i=>[i.n,i.mk,i.jan,i.a,i.sh,i.pk||"",i.sr,i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn,i.wd||""]);
 function exportCopy(){const cl=v=>String(v).replace(/[\t\r\n]+/g," "),t=[EXH,...exRows()].map((r,k)=>r.map((v,j)=>{v=cl(v);return k>0&&j===2&&v?"'"+v:v}).join("\t")).join("\n");
  cpy(t).then(ok=>{if(ok)exm.textContent=items.length+"件をコピーしました。スプレッドシートのセルを選んで貼り付けてください。";else prompt("コピーしてください",t)})}
 function exportCsv(){const q=v=>'"'+String(v).replace(/"/g,'""')+'"',t="﻿"+[EXH,...exRows()].map(r=>r.map(q).join(",")).join("\r\n");
