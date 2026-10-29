@@ -344,7 +344,7 @@ let xo={};
 function tx(id){xo[id]=!xo[id];render()}
 function rowS(i){const wt=i.px&&(i.wsv!=null||i.pxn!=null)?"週販"+(i.wsv==null?"－":i.wsv)+"/投稿"+(i.pxn==null?"－":i.pxn):"",sub=[ng(i)>1?"◎"+ng(i)+"か所展開":"",wt,i.s==="need"?(i.cs||0)+"ケース"+(i.pk?"＝"+(i.cs||0)*i.pk+"本":""):""].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
  const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
- return `<div class="pk cp ${i.s}" style="${srS(i)}">${bulk?`<input type="checkbox" class="bk" ${bs[i.id]?"checked":""} onchange="togB(${i.id})">`:""}<div class="pn" onclick="${bulk?"cb(this)":"tx("+i.id+")"}"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div>${sub?`<div class="loc">${esc(sub)}</div>`:""}</div>${!bulk&&i.s==="need"?`<div class="pc pcs"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>`:""}${bulk?"":`<div class="sb"><button class="rp ${i.s} ${i.s?"on":""}" onclick="cycS(${i.id})">${i.s==="need"?"要補充":i.s==="done"?"補充済":"補充"}</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button></div>`}</div>`}
+ return `<div class="pk cp ${i.s}" style="${srS(i)}">${bulk?`<input type="checkbox" class="bk" ${bs[i.id]?"checked":""} onchange="togB(${i.id})">`:""}<div class="pn" onclick="${bulk?"cbTap(this)":"tx("+i.id+")"}"><div>${esc(i.n)}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div>${sub?`<div class="loc">${esc(sub)}</div>`:""}</div>${!bulk&&i.s==="need"?`<div class="pc pcs"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>`:""}${bulk?"":`<div class="sb"><button class="rp ${i.s} ${i.s?"on":""}" onclick="cycS(${i.id})">${i.s==="need"?"要補充":i.s==="done"?"補充済":"補充"}</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button></div>`}</div>`}
 function openForm(){fm.classList.add("pop");bd.style.display="block"}
 function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
 async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin="";b.forEach(x=>bin+=String.fromCharCode(x));return btoa(bin)}
@@ -403,7 +403,7 @@ function startBulk(){tab(0);bulk=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
 function bAll(){curList.forEach(i=>{bs[i.id]=true});render()}
 function bNone(){bs={};render()}
-function cb(el){const x=el.parentNode.querySelector(".bk");if(x)x.click()}
+function cbTap(el){const x=el.parentNode.querySelector(".bk");if(x)x.click()}
 function bApply(){const ids=Object.keys(bs).filter(k=>bs[k]);if(!ids.length){alert("商品を選択してください。");return}
  const a=bA.value,s=bS.value.trim(),c=bC.checked;if(!a&&!s&&!c){alert("変更する売り場、または新しい区分を入力してください。");return}
  if(!confirm(ids.length+"件の商品を変更します。よろしいですか?"))return;
