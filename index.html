@@ -252,7 +252,7 @@ function saveMemo(){const mk=mMk.value.trim(),x=mX.value.trim();if(!mk||!x){aler
  clearMemo();save();render()}
 function clearMemo(){editM=null;mX.value="";mMk.value=mfv;mD.value=today();mSave.textContent="保存する";mCancel.style.display="none"}
 function editMemo(id){const m=memos.find(x=>x.id===id);editM=id;mMk.value=m.mk;mD.value=m.d;mX.value=m.x;mSave.textContent="更新する";mCancel.style.display="";mForm.scrollIntoView({behavior:"smooth"})}
-const TN=["システム在庫確認","追加発注","在庫数修正","その他"],TT=[[0,"在庫確認"]];
+const TN=["システム在庫確認","追加発注","在庫数修正","その他"],TT=[[0,"在庫確認"],[1,"追加発注"]];
 const hasT=(id,t)=>tasks.some(x=>x.iid===id&&x.t===t&&!x.done);
 function togT(id,t){const k=tasks.findIndex(x=>x.iid===id&&x.t===t&&!x.done);if(k>=0)tasks.splice(k,1);else tasks.push({id:Date.now(),iid:id,t,x:"",done:false,d:today()});save();render()}
 function addTask(){const x=tkIn.value.trim();if(!x)return;tasks.push({id:Date.now(),iid:0,t:3,x,done:false,d:today()});tkIn.value="";save();render()}
