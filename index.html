@@ -88,6 +88,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:8px 0"><input type="checkbox" id="cb" style="width:auto;margin:0" onchange="setCfg()">バーコードを全商品に常に表示</label>
 <label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:8px 0"><input type="checkbox" id="cb2" style="width:auto;margin:0" onchange="setCfg()">指数対象の商品だけ表示(売場巡回で「指数」を押した商品)</label>
 <div id="sp" style="font-size:13px;color:var(--sub);margin:6px 0"></div>
+<button class="pri" onclick="oneOpen()">▶ 1枚ずつ表示モード(バーコードを順にスキャン)</button>
 <button class="pri g" onclick="copyIdx()">週販・投稿数リストをコピー</button>
 <button class="pri g" onclick="resetPf()">次の回に向けてリセット(投稿済み・対象の印を外す)</button>
 </div>
@@ -148,6 +149,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="imr" style="font-size:13px;margin:6px 0"></div>
 <button class="pri" id="imgo" style="display:none" onclick="impGo()">取り込む</button>
 </div>
+<div id="ov1" style="display:none;position:fixed;inset:0;z-index:999;background:var(--bg);overflow:auto;padding:12px calc(12px + env(safe-area-inset-right)) 24px calc(12px + env(safe-area-inset-left))"></div>
 <div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
 <div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分"></div>
@@ -165,7 +167,7 @@ try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.ma
 function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
-function tab(v){view=v;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
+function tab(v){view=v;o1=-1;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
 function setCat(i){cat=cl[i];render()}
 function wdL(d){const m=String(d).match(/^(\d{4})-(\d\d)-(\d\d)$/);if(!m)return d;return (+m[1]===new Date().getFullYear()?"":m[1]+"/")+(+m[2])+"/"+(+m[3])}
 function pdate(v){v=hw(String(v||"")).trim();let m=v.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})$/);if(m){const n=new Date();let y=n.getFullYear();if(new Date(y,m[1]-1,m[2])>n)y--;return y+"-"+String(m[1]).padStart(2,"0")+"-"+String(m[2]).padStart(2,"0")}return ""}
@@ -208,6 +210,8 @@ function render(){
   const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cfg.only===false||pxAny(i))&&(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
   sp.textContent="投稿済 "+L.filter(i=>i.pf).length+" / "+L.length+"品 ・ 週販入力済 "+L.filter(i=>i.wsv!=null).length+"品";
   const G={};L.forEach(i=>{const ai=areas.indexOf(i.a),k=String(ai<0?99:ai).padStart(2,"0");(G[k]=G[k]||{n:i.a||"未設定",hu:ai<0?7:ai,a:[]}).a.push(i)});
+  {const ks=Object.keys(G).sort();ks.forEach(k=>G[k].a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja")));sxOrd=ks.flatMap(k=>G[k].a)}
+  if(o1>=0){listEl.innerHTML="";oneR();return}
   listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">${cfg.only===false?"該当する商品がありません":"指数投稿の対象がありません。売場巡回タブで商品の「指数」ボタンを押すと、ここに出ます"}</div>`;return}
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
@@ -374,7 +378,19 @@ function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(
 function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fA.value="";fSh.value=""}
 window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300&&!(bulk&&view===0)?"block":"none"},{passive:true});
 const idxOf=v=>{const x=Math.round(v*cfg.rate*100)/10000;return cfg.rd==="ceil"?Math.ceil(x):cfg.rd==="floor"?Math.floor(x):Math.round(x)};
-let bo6={};
+let bo6={},o1=-1,sxOrd=[],o1x=0;
+function oneOpen(){const k=sxOrd.findIndex(x=>!x.pf);o1=k<0?0:k;render();window.scrollTo(0,0)}
+function oneClose(){o1=-1;document.getElementById("ov1").style.display="none";render()}
+function oneGo(d){o1=Math.min(Math.max(o1+d,0),sxOrd.length-1);oneR();document.getElementById("ov1").scrollTop=0}
+function onePost(){const i=sxOrd[o1];if(!i.pf){i.pf=true;save()}if(o1<sxOrd.length-1){oneGo(1)}else oneR()}
+function oneR(){const o=document.getElementById("ov1");if(o1<0||!sxOrd.length){o1=-1;o.style.display="none";return}
+ if(o1>=sxOrd.length)o1=sxOrd.length-1;const i=sxOrd[o1],n=sxOrd.length,dn=sxOrd.filter(x=>x.pf).length;o.style.display="block";
+ o.innerHTML=`<div class="row"><b style="font-size:15px">${o1+1} / ${n}</b><span class="loc">投稿済 ${dn} / ${n}</span><button class="sec" onclick="oneClose()">閉じる ✕</button></div>
+ <div class="item sxc ${i.pf?"done":""}" style="margin-top:8px;padding:14px"><div class="nm" style="font-size:18px">${esc(i.n)}</div><div class="loc">${esc([i.mk,(i.a||"")+(i.sh?" "+shL(i.sh):""),i.pk?i.pk+"本/ケース":""].filter(x=>x&&String(x).trim()).join(" ・ "))}</div>
+ ${i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`}${wsBlock(i)}
+ <button class="pd" style="margin-top:10px;width:100%;padding:10px" onclick="togPf(${i.id})">${i.pf?"✓ 投稿済み(タップで解除)":"○ 未投稿(タップで投稿済みにする)"}</button></div>
+ <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px;margin-top:10px"><button class="pri g" style="margin:0" onclick="oneGo(-1)" ${o1===0?"disabled":""}>◀ 前</button><button class="pri" style="margin:0" onclick="onePost()">投稿済にして次へ</button><button class="pri g" style="margin:0" onclick="oneGo(1)" ${o1===n-1?"disabled":""}>次 ▶</button></div>`;
+ o.ontouchstart=e=>{o1x=e.changedTouches[0].clientX};o.ontouchend=e=>{const d=e.changedTouches[0].clientX-o1x;if(Math.abs(d)>90&&!/INPUT/.test(e.target.tagName))oneGo(d<0?1:-1)}}
 function tb6(id){bo6[id]=!bo6[id];render()}
 function pcH(i){return i.wsv&&i.pxn!=null?Math.round(i.pxn/i.wsv*100)+"%":""}
 function sxRow(i){const open=cfg.bc||bo6[i.id];
