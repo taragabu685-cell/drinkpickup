@@ -168,7 +168,7 @@ const ORD={need:0,"":1,out:2,done:3};
 function tab(v){view=v;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
 function setCat(i){cat=cl[i];render()}
 function srH(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return (h%24)*15}
-function srS(i){if(!i.sr)return "";const h=srH(i.sr),c=`hsl(${h} 65% 50% / .16)`;return `background-image:linear-gradient(${c},${c})`}
+function srS(i){if(!i.sr)return "";const h=srH(i.sr),c=`hsl(${h} 30% 42% / .24)`;return `background-image:linear-gradient(${c},${c})`}
 function cycS(id){const it=items.find(x=>x.id===id);it.s=it.s===""?"need":it.s==="need"?"done":"";if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
