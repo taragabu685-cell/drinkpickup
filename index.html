@@ -91,7 +91,9 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="sp" style="font-size:13px;color:var(--sub);margin:6px 0"></div>
 <button class="pri" onclick="oneOpen()">▶ 1枚ずつ表示モード(バーコードを順にスキャン)</button>
 <button class="pri g" onclick="copyIdx()">週販・投稿数リストをコピー</button>
-<button class="pri g" onclick="resetPf()">次の回に向けてリセット(投稿済み・対象の印を外す)</button>
+<button class="pri" onclick="finishPost()">✅ まとめて投稿を完了(日付とリストを履歴に保存)</button>
+<button class="pri g" onclick="togPh()" id="phb">📋 投稿履歴を見る</button>
+<button class="pri g" onclick="resetPf()">記録せずに印だけリセット(投稿済み・対象の印を外す)</button>
 </div>
 <div class="add" id="jForm" style="display:none;margin:0 0 10px">
 <b style="font-size:14px">JANをどんどんスキャン</b>
@@ -164,11 +166,11 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <script>
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
-let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
+let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],posts=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
 const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,px:!!x.px,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
-try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,cfg}))}catch(e){}}
+try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];posts=Array.isArray(d.posts)?d.posts:[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,posts,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
 function tab(v){view=v;o1=-1;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
@@ -212,7 +214,7 @@ function render(){
  pb.style.width=(items.length?done/items.length*100:0)+"%";
  sumw.style.display=view===2?"flex":"none";s1.textContent=`未確認 ${un} ／ 要補充 ${need}`;s2.textContent=`補充済 ${done}`;if(view===2){const nd=items.filter(i=>i.s==="need");s1.textContent=`ピック ${nd.length}品`;s2.textContent=`合計 ${nd.reduce((s,i)=>s+(i.cs||0),0)}ケース`}
  if(view===7){listEl.innerHTML=`<div class="add" style="margin-top:0"><b style="font-size:14px">区分の一括変更</b><div style="font-size:12px;color:var(--sub);margin:4px 0">売場巡回の一覧で商品にチェックを付けて、区分と売り場をまとめて変更します。終わったら、画面下のバーの「終了」を押します。</div><button class="pri" onclick="startBulk()">一括変更を始める</button></div>`;return}
- if(view===6){cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;cb2.checked=cfg.only!==false;const seen={};
+ if(view===6){phb.textContent=phOn?"← 指数の一覧に戻る":"📋 投稿履歴を見る("+posts.length+"件)";if(phOn){listEl.innerHTML=phH();return}cr.value=cfg.rate;cd.value=cfg.rd;cb.checked=!!cfg.bc;cb2.checked=cfg.only!==false;const seen={};
   const L=items.filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true}).filter(i=>(cfg.only===false||pxAny(i))&&(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
   sp.textContent="投稿済 "+L.filter(i=>i.pf).length+" / "+L.length+"品 ・ 週販入力済 "+L.filter(i=>i.wsv!=null).length+"品";
   const G={};L.forEach(i=>{const ai=areas.indexOf(i.a),k=String(ai<0?99:ai).padStart(2,"0");(G[k]=G[k]||{n:i.a||"未設定",hu:ai<0?7:ai,a:[]}).a.push(i)});
@@ -361,7 +363,7 @@ async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writabl
 async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
  if(typeof DecompressionStream!=="undefined"){try{const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}catch(e){}}
  if(window.pako)return new TextDecoder().decode(pako.inflateRaw(u));throw new Error("この端末は圧縮バックアップの復元に未対応です")}
-async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock,cfg});let t=j;
+async function mkBk(){const j=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock,posts,cfg});let t=j;
  try{const z=await zip(j);t="HJ1:"+z+"~"+z.length}catch(e){}
  bk.value=t;bk.select();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
  mb.textContent=ok?"コピーしました ✓ ("+t.length+"文字) メモに貼り付けて保管":"下のテキストを長押しして全選択・コピーしてください ("+t.length+"文字)";setTimeout(()=>mb.textContent="バックアップ作成",4000)}
@@ -376,7 +378,7 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  }catch(e){alert("テキストを読み取れませんでした。\n先頭: "+t.slice(0,10)+" / 末尾: "+t.slice(-6)+" / 長さ: "+t.length+"文字\n原因: "+(e&&e.message||e));return}
  if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
  if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
- items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];cfg=Object.assign({rate:65,rd:"round"},d.cfg||{});
+ items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];posts=Array.isArray(d.posts)?d.posts:[];cfg=Object.assign({rate:65,rd:"round"},d.cfg||{});
  items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
 const HUE=[210,25,140,330,50,180,270,0];
 let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
@@ -410,6 +412,20 @@ function togPf(id){const i=items.find(x=>x.id===id);i.pf=!i.pf;save();render()}
 const pxAny=i=>items.some(x=>x.px&&(x===i||(i.g&&x.g===i.g)));
 function togPx(id){const i=items.find(x=>x.id===id),on=!pxAny(i);items.forEach(x=>{if(x===i||(i.g&&x.g===i.g))x.px=on});save();render()}
 function togPxI(id){const i=items.find(x=>x.id===id);i.px=!i.px;save();render()}
+let phOn=false,pho={};
+function nowS(){const d=new Date(),p=v=>String(v).padStart(2,"0");return today()+" "+p(d.getHours())+":"+p(d.getMinutes())}
+function finishPost(){const seen={},L=items.filter(i=>i.px).filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true});
+ if(!L.length){alert("指数投稿の対象がありません。売場巡回タブで商品の「指数」を押して対象にしてください。");return}
+ const np=L.filter(i=>i.pxn==null).length;
+ if(!confirm(L.length+"品を投稿完了として履歴に保存します。"+(np?"\n(投稿数が未入力の商品が "+np+"品 あります)":"")+"\n保存後、投稿済み・対象の印を外します(週販と投稿数は残ります)。"))return;
+ posts.unshift({id:Date.now(),d:nowS(),rows:L.map(i=>({n:i.n,mk:i.mk,jan:i.jan,w:i.wsv==null?null:i.wsv,p:i.pxn==null?null:i.pxn,wd:i.wd||""}))});
+ items.forEach(i=>{i.pf=false;i.px=false});phOn=true;save();render();window.scrollTo(0,0)}
+function togPh(){phOn=!phOn;render();window.scrollTo(0,0)}
+function phH(){if(!posts.length)return `<div class="empty">投稿履歴はまだありません。<br>投稿を終えたら「まとめて投稿を完了」を押すと、日付とリストがここに残ります</div>`;
+ return posts.map(r=>{const o=!!pho[r.id];return `<div class="item"><div class="row"><div onclick="tpo(${r.id})" style="flex:1"><div class="nm">${esc(r.d)}</div><div class="loc">${r.rows.length}品 ${o?"▲":"▼"}</div></div><div><button class="sec" onclick="cpPost(${r.id})">コピー</button><button class="sec" onclick="delPost(${r.id})">削除</button></div></div>${o?r.rows.map(x=>`<div class="loc" style="border-top:1px solid var(--bd);padding:4px 0"><b style="color:var(--tx)">${esc(x.n)}</b><br>週販 ${x.w==null?"－":x.w} ／ 投稿 ${x.p==null?"－":x.p}${x.jan?" ・ "+esc(x.jan):""}</div>`).join(""):""}</div>`}).join("")}
+function tpo(id){pho[id]=!pho[id];render()}
+function delPost(id){if(confirm("この履歴を削除しますか?")){posts=posts.filter(r=>r.id!==id);save();render()}}
+function cpPost(id){const r=posts.find(x=>x.id===id);if(!r)return;const t="投稿日時\t"+r.d+"\n商品名\tJAN\t週販\t投稿数\n"+r.rows.map(x=>[x.n,x.jan||"",x.w==null?"":x.w,x.p==null?"":x.p].join("\t")).join("\n");cpy(t).then(ok=>{if(ok)alert("コピーしました");else prompt("コピーしてください",t)})}
 function resetPf(){if(confirm("次の回に向けてリセットします。投稿済みの印と指数の対象を、すべて外します(週販と投稿数は残ります)。")){items.forEach(i=>{i.pf=false;i.px=false});save();render()}}
 function setCfg(){const r=parseFloat(cr.value);cfg.rate=isFinite(r)&&r>0?r:65;cfg.rd=cd.value;cfg.bc=cb.checked;cfg.only=cb2.checked;save();render()}
 function copyIdx(){const t=items.filter(i=>i.wsv!=null||i.pxn!=null).map(i=>[i.n,i.jan||"",i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn].join("\t")).join("\n")||"入力済みの商品がありません";cpy(t).then(ok=>{if(ok)sp.textContent="コピーしました(商品名・JAN・週販・投稿数)";else prompt("コピーしてください",t)})}
