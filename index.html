@@ -328,8 +328,8 @@ function impPrev(){const t=im.value.replace(/^\uFEFF/,"");impR=[];imgo.style.dis
 function impGo(){if(!impR.length)return;let ne=0,up=0;
  impR.forEach(({o})=>{if(o.a&&!areas.includes(o.a))areas.push(o.a);
   const ex=findEx(o);
-  if(ex){Object.keys(o).forEach(k=>{if(o[k]!==""&&(o[k]!==0||k==="wsv"||k==="pxn"))ex[k]=o[k]});up++}
-  else{const sib=o.jan&&items.find(i=>i.jan===o.jan),ni=norm({id:Date.now()+ne+up,...o},0);if(sib){sib.g=sib.g||"g"+Date.now()+ne;ni.g=sib.g}items.push(ni);ne++}});
+  if(ex){Object.keys(o).forEach(k=>{if(k==="jan"&&ex.jan&&jk(ex.jan)===jk(o.jan))return;if(o[k]!==""&&(o[k]!==0||k==="wsv"||k==="pxn"))ex[k]=o[k]});up++}
+  else{const sib=o.jan&&items.find(i=>i.jan&&jk(i.jan)===jk(o.jan)),ni=norm({id:Date.now()+ne+up,...o},0);if(sib){sib.g=sib.g||"g"+Date.now()+ne;ni.g=sib.g}items.push(ni);ne++}});
  pruneJ();save();render();imr.textContent=`取り込みました(新規 ${ne}件、更新 ${up}件)`;im.value="";impR=[];imgo.style.display="none"}
 const ckd=c=>{let s=0;const d=c.slice(0,-1);for(let i=0;i<d.length;i++)s+=(+d[d.length-1-i])*(i%2===0?3:1);return (10-s%10)%10===+c.slice(-1)};
 function normJ(raw){let c=hw(String(raw)).replace(/\D/g,"");if(!c)return "";if(c.length<13&&!(c.length===8&&ckd(c)))c=c.padStart(13,"0");return c}
@@ -380,7 +380,8 @@ async function rsBk(){const t=bk.value.replace(/[“”]/g,'"').trim();let j,d;
  items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});cat="すべて";save();render();bk.value="";alert("復元しました(商品 "+items.length+"件)。")}
 const HUE=[210,25,140,330,50,180,270,0];
 let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
-function findEx(o){const same=o.jan?items.filter(i=>i.jan===o.jan):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
+const jk=j=>String(j||"").replace(/^0+/,"");
+function findEx(o){const same=o.jan?items.filter(i=>i.jan&&jk(i.jan)===jk(o.jan)):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
 function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fd2.style.display="none";fA.value="";fSh.value=""}
 window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300&&!(bulk&&view===0)?"block":"none"},{passive:true});
 const idxOf=v=>{const x=Math.round(v*cfg.rate*100)/10000;return cfg.rd==="ceil"?Math.ceil(x):cfg.rd==="floor"?Math.floor(x):Math.round(x)};
