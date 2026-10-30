@@ -175,8 +175,8 @@ function setCat(i){cat=cl[i];render()}
 function wdL(d){const m=String(d).match(/^(\d{4})-(\d\d)-(\d\d)$/);if(!m)return d;return (+m[1]===new Date().getFullYear()?"":m[1]+"/")+(+m[2])+"/"+(+m[3])}
 function pdate(v){v=hw(String(v||"")).trim();let m=v.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})$/);if(m){const n=new Date();let y=n.getFullYear();if(new Date(y,m[1]-1,m[2])>n)y--;return y+"-"+String(m[1]).padStart(2,"0")+"-"+String(m[2]).padStart(2,"0")}return ""}
 function srH(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return (h%24)*15}
-let zb={};
-function srS(i){if(!zb[i.id])return "";const c="hsl(215 25% 50% / .2)";return `background-image:linear-gradient(${c},${c})`}
+let zb={},zn=0;
+function srS(i){let s="";if(zb[i.id]){const c="hsl(215 25% 50% / .2)";s+=`background-image:linear-gradient(${c},${c});`}if(i.sr)s+=`box-shadow:inset 6px 0 0 hsl(${srH(i.sr)} 45% 52%)`;return s}
 function cycS(id){const it=items.find(x=>x.id===id);it.s=it.s===""?"need":it.s==="need"?"done":"";if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s==="need"&&!it.cs)it.cs=1;save();render()}
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
@@ -237,7 +237,7 @@ function render(){
   else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+shL(i.sh):(cat!=="すべて"&&anySh?"区分なし":""));k=String(ai<0?99:ai).padStart(2,"0")+shK(i.sh);hu=ai<0?7:ai}
   (G[k]=G[k]||{lb,hu,sn:parseInt(i.sh)||0,a:[]}).a.push(i)});
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
- listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
+ zn=0;listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
   return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&(bulk||!xo[i.id])?rowS(i):`
  <div class="item ${i.s}" style="${srS(i)}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")}${i.sr?" ・ "+esc(i.sr):""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="cloneItem(${i.id})">複製</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st" style="grid-template-columns:repeat(4,1fr)"><button class="rp ${i.s} ${i.s?"on":""}" onclick="cycS(${i.id})">${i.s==="need"?"要補充":i.s==="done"?"補充済":"補充"}</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button>${TT.map(t=>`<button class="tb ${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>
@@ -294,7 +294,7 @@ function tto(id){to[id]=!to[id];render()}
 let pm="maker",jmsg="",so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27");
 function tso(k){k=decodeURIComponent(k);const cur=so[k]===undefined?view>0:so[k];so[k]=!cur;render()}
 function setAllS(ids,s){ids.split(",").forEach(id=>{const it=items.find(x=>x.id==id);if(it){it.s=s;if(s==="need"&&!it.cs)it.cs=1}});save();render()}
-function series(arr,f){{const seen={};let n=0;arr.forEach(i=>{const k=i.sr?"s"+i.sr:"i"+i.id;if(seen[k]===undefined)seen[k]=n++;zb[i.id]=seen[k]%2})}if(view===0)return arr.map(f);const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
+function series(arr,f){{const ct={},pl={},od=[];arr.forEach(i=>{if(i.sr)ct[i.sr]=(ct[i.sr]||0)+1});arr.forEach(i=>{if(view!==0&&view!==2&&i.sr&&ct[i.sr]>1){if(pl[i.sr])return;pl[i.sr]=1;arr.filter(x=>x.sr===i.sr).forEach(x=>od.push(x))}else od.push(i)});od.forEach(i=>{zb[i.id]=(zn++)%2})}if(view===0)return arr.map(f);const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
  arr.forEach(i=>{if(!i.sr||cnt[i.sr]<2||view===2){out.push(f(i));return}
   if(dn[i.sr])return;dn[i.sr]=1;const m=arr.filter(x=>x.sr===i.sr),k=ek(i.sr),c=s=>m.filter(x=>x.s===s).length;
   const open=!!q||(so[i.sr]===undefined?view>0:so[i.sr]);
