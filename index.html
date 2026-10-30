@@ -124,6 +124,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
 </div>
+<div id="toolsBox" style="display:none">
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button></div>
 
 <div class="add">
@@ -149,6 +150,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" onclick="impPrev()">内容を確認</button>
 <div id="imr" style="font-size:13px;margin:6px 0"></div>
 <button class="pri" id="imgo" style="display:none" onclick="impGo()">取り込む</button>
+</div>
 </div>
 <div id="ov1" style="display:none;position:fixed;inset:0;z-index:999;background:var(--bg);overflow:auto;padding:12px calc(12px + env(safe-area-inset-right)) 24px calc(12px + env(safe-area-inset-left))"></div>
 <div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
@@ -202,7 +204,7 @@ function render(){
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv)?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ toolsBox.style.display=view===7?"":"none";qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv)?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="done").length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
