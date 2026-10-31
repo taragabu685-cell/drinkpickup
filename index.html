@@ -432,16 +432,16 @@ function setCfg(){const r=parseFloat(cr.value);cfg.rate=isFinite(r)&&r>0?r:65;cf
 function copyIdx(){const t=items.filter(i=>i.wsv!=null||i.pxn!=null).map(i=>[i.n,i.jan||"",i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn].join("\t")).join("\n")||"入力済みの商品がありません";cpy(t).then(ok=>{if(ok)sp.textContent="コピーしました(商品名・JAN・週販・投稿数)";else prompt("コピーしてください",t)})}
 const shL=v=>v?(/^\d+$/.test(v)?"区分"+v:v):"";
 const shK=v=>v?(/^\d+$/.test(v)?"0"+String(v).padStart(4,"0"):"1"+v):"2";
-let bulk=false,bs={},curList=[],wo={};
+let bAr=true,bulk=false,bs={},curList=[],wo={};
 const bcnt=()=>Object.keys(bs).filter(k=>bs[k]).length;
 function bbPos(){try{const v=window.visualViewport;if(!v)return;const o=Math.max(0,window.innerHeight-v.height-v.offsetTop);bb.style.bottom=o+"px";topPos()}catch(e){}}
 try{if(window.visualViewport){visualViewport.addEventListener("resize",bbPos);visualViewport.addEventListener("scroll",bbPos)}}catch(e){}
 function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
- if(on){const k=bA.value;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択"}topPos()}
-function togBulk(){bulk=!bulk;bs={};render()}
+ if(on){const k=bAr?"":bA.value;bAr=false;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択"}topPos()}
+function togBulk(){bulk=!bulk;bAr=true;bs={};render()}
 function clearQ(){q="";qin.value="";render();try{qin.focus()}catch(e){}}
 function resetF(){q="";qin.value="";cat="すべて";mfv="";render()}
-function startBulk(){tab(0);bulk=true;bs={};render();window.scrollTo(0,0)}
+function startBulk(){tab(0);bulk=true;bAr=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
 let bgrp=[];
 function bGrp(ix){const ids=bgrp[ix]||[],all=ids.every(id=>bs[id]);ids.forEach(id=>{bs[id]=!all});render()}
@@ -452,7 +452,7 @@ function bApply(){const ids=Object.keys(bs).filter(k=>bs[k]);if(!ids.length){ale
  const a=bA.value,s=bS.value.trim(),c=bC.checked;if(!a&&!s&&!c){alert("変更する売り場、または新しい区分を入力してください。");return}
  if(!confirm(ids.length+"件の商品を変更します。よろしいですか?"))return;
  items.forEach(i=>{if(!bs[i.id])return;if(a)i.a=a;if(c)i.sh="";else if(s)i.sh=s});
- bs={};bS.value="";bC.checked=false;save();render()}
+ bs={};bS.value="";bC.checked=false;bAr=true;save();render()}
 function two(id){wo[id]=!wo[id];render()}
 function wsBlock(i){const w=i.wsv,p=i.pxn;return `<div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc" id="wd${i.id}">${i.wd?wdL(i.wd)+"入力":""}</span><span class="loc">参考${cfg.rate}%</span><button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>`}
 function cpy(t){return new Promise(res=>{const fb2=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}};if(fb2()){res(true);return}const fb=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();res(ok)}catch(e){res(false)}};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>res(true),fb)}else fb()})}
