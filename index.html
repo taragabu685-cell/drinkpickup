@@ -240,8 +240,8 @@ function render(){
   else{const ai=areas.indexOf(i.a);const an=i.a||"未設定";lb=(cat==="すべて"?an:"")+(i.sh?(cat==="すべて"?" ":"")+shL(i.sh):(cat!=="すべて"&&anySh?"区分なし":""));k=String(ai<0?99:ai).padStart(2,"0")+shK(i.sh);hu=ai<0?7:ai}
   (G[k]=G[k]||{lb,hu,sn:parseInt(i.sh)||0,a:[]}).a.push(i)});
  const keys=Object.keys(G).sort((a,b)=>a.localeCompare(b,"ja"));
- sbk={};sbn=0;sbp="";listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
-  return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&(bulk||!xo[i.id])?rowS(i):`
+ bgrp=keys.map(k=>G[k].a.map(i=>i.id)); sbk={};sbn=0;sbp="";listEl.innerHTML=keys.length?keys.map(k=>{const g=G[k];g.a.sort((a,b)=>a.n.localeCompare(b.n,"ja"));
+  return (g.lb?`<div class="gh${g.hu>=0?" ca":""}" style="${g.hu>=0?"--h:"+HUE[g.hu%HUE.length]+";--a:"+(g.sn%2?".14":".28"):""}"><span>${esc(g.lb)}</span><span>${view===0&&bulk?`<button class="sec" onclick="bGrp(${keys.indexOf(k)})">${g.a.every(i=>bs[i.id])?"この区分の選択を外す":"この区分をすべて選択"}</button> `:""}${view===2?g.a.reduce((s,i)=>s+(i.cs||0),0)+"ケース":g.a.length+"件"}</span></div>`:"")+series(g.a,i=>view===2?pickRow(i):view===0&&(bulk||!xo[i.id])?rowS(i):`
  <div class="item ${i.s}" style="${srS(i)}"><div class="row"><div><div class="nm" onclick="tx(${i.id})">${esc(i.n)} ▲</div><div class="loc">${esc(i.mk||"メーカー未設定")}${i.sr?" ・ "+esc(i.sr):""}${i.pk?" ・ "+i.pk+"本/ケース":""}${i.jan?" ・ "+esc(i.jan):""}</div></div><div><button class="sec" onclick="edit(${i.id})">編集</button><button class="sec" onclick="cloneItem(${i.id})">複製</button><button class="sec" onclick="del(${i.id})">削除</button></div></div>
  <div class="st" style="grid-template-columns:repeat(4,1fr)"><button class="rp ${i.s} ${i.s?"on":""}" onclick="cycS(${i.id})">${i.s==="need"?"要補充":i.s==="done"?"補充済":"補充"}</button><button class="px ${i.px?"on":""}" onclick="togPxI(${i.id})">指数</button>${TT.map(t=>`<button class="tb ${hasT(i.id,t[0])?"on":""}" onclick="togT(${i.id},${t[0]})">${t[1]}</button>`).join("")}</div>
  ${i.s==="need"?`<div class="cs"><span>ピック</span><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><span>ケース</span><button onclick="adj(${i.id},1)">＋</button>${i.pk?`<span style="color:var(--sub)">＝${(i.cs||0)*i.pk}本</span>`:""}</div>`:""}<button class="sec" onclick="two(${i.id})">週販・指数${i.wsv!=null||i.pxn!=null?" "+(i.wsv==null?"－":i.wsv)+" / "+(i.pxn==null?"－":i.pxn):""} ${wo[i.id]?"▲":"▼"}</button>${wo[i.id]?wsBlock(i):""}${i.jan?`<button class="sec" onclick="tbc(${i.id})">${bo[i.id]?"バーコードを隠す":"バーコード表示"}</button>`+(bo[i.id]?bc(i.jan):""):""}</div>`).join("")}).join(""):`<div class="empty">${view===1?"発注が必要な商品はありません":view===2?"補充が必要な商品はありません":"該当する商品がありません"}</div>`;
@@ -440,6 +440,8 @@ function clearQ(){q="";qin.value="";render();try{qin.focus()}catch(e){}}
 function resetF(){q="";qin.value="";cat="すべて";mfv="";render()}
 function startBulk(){tab(0);bulk=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
+let bgrp=[];
+function bGrp(ix){const ids=bgrp[ix]||[],all=ids.every(id=>bs[id]);ids.forEach(id=>{bs[id]=!all});render()}
 function bAll(){curList.forEach(i=>{bs[i.id]=true});render()}
 function bNone(){bs={};render()}
 function cbTap(el){const x=el.parentNode.querySelector(".bk");if(x)x.click()}
