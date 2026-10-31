@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>飲料補充チェック</title>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako_inflate.min.js"></script>
@@ -158,7 +158,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="ov1" style="display:none;position:fixed;inset:0;z-index:999;background:var(--bg);overflow:auto;padding:12px calc(12px + env(safe-area-inset-right)) 24px calc(12px + env(safe-area-inset-left))"></div>
 <div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
-<div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分"></div>
+<div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
 <button class="pri" style="margin-top:2px" onclick="bApply()">選択した商品に適用</button></div>
 <div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
@@ -433,6 +433,8 @@ const shL=v=>v?(/^\d+$/.test(v)?"区分"+v:v):"";
 const shK=v=>v?(/^\d+$/.test(v)?"0"+String(v).padStart(4,"0"):"1"+v):"2";
 let bulk=false,bs={},curList=[],wo={};
 const bcnt=()=>Object.keys(bs).filter(k=>bs[k]).length;
+function bbPos(){try{const v=window.visualViewport;if(!v)return;const o=Math.max(0,window.innerHeight-v.height-v.offsetTop);bb.style.bottom=o+"px"}catch(e){}}
+try{if(window.visualViewport){visualViewport.addEventListener("resize",bbPos);visualViewport.addEventListener("scroll",bbPos)}}catch(e){}
 function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
  if(on){const k=bA.value;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択";topBtn.style.display="none"}}
 function togBulk(){bulk=!bulk;bs={};render()}
