@@ -95,6 +95,13 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" onclick="togPh()" id="phb">📋 投稿履歴を見る</button>
 <button class="pri g" onclick="resetPf()">記録せずに印だけリセット(投稿済み・対象の印を外す)</button>
 </div>
+<div class="add" id="pForm" style="display:none;margin:0 0 10px">
+<b style="font-size:14px">スキャンしてピックリストに追加</b>
+<div style="font-size:12px;color:var(--sub);margin:4px 0">補充が必要な商品のバーコードを読むと「要補充」になり、下のリストに出ます。同じ商品をもう一度読むと1ケース増えます(数は下のリストで±調整できます)。Bluetoothスキャナーは枠をタップしなくても読めます。</div>
+<input id="pIn" inputmode="none" placeholder="ここをタップしてスキャン" onkeydown="if(event.key==='Enter'){event.preventDefault();pAdd(this.value);this.value=''}">
+<button class="pri g" onclick="openScan('pick')">📷 カメラで連続スキャン</button>
+<div id="pmsg" style="font-size:13px;margin-top:6px"></div>
+</div>
 <div class="add" id="jForm" style="display:none;margin:0 0 10px">
 <b style="font-size:14px">JANをどんどんスキャン</b>
 <div style="font-size:12px;color:var(--sub);margin:4px 0">下の枠をタップしてBluetoothスキャナーで読むと、未登録のJANが溜まります(枠を選んでいなくても読めます)。カメラでの連続スキャンもできます。登録済みの商品や読み間違いは弾きます。</div>
@@ -202,7 +209,7 @@ function resetDay(){if(confirm("全商品の状態をリセットしますか?")
 function render(){
  cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
  chips.innerHTML=(view!==0&&view!==2&&view!==6)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
- gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
+ pForm.style.display=view===2?"":"none";pmsg.textContent=pmT;gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
@@ -337,6 +344,13 @@ const ckd=c=>{let s=0;const d=c.slice(0,-1);for(let i=0;i<d.length;i++)s+=(+d[d.
 function normJ(raw){let c=hw(String(raw)).replace(/\D/g,"");if(!c)return "";if(c.length<13&&!(c.length===8&&ckd(c)))c=c.padStart(13,"0");return c}
 items.forEach(i=>{if(i.jan)i.jan=normJ(i.jan)});
 function pruneJ(){jstock=jstock.filter(j=>!items.some(i=>i.jan&&jk(i.jan)===jk(j)))}
+let lastP={c:"",t:0},pmT="";
+function pAdd(raw){const c=normJ(raw);if(!c)return;const now=Date.now();if(c===lastP.c&&now-lastP.t<2000){lastP.t=now;return}lastP={c,t:now};let m;
+ if(c.length>13||!ckd(c))m="読み取りミスの可能性があります: "+c;
+ else{const it=items.find(i=>i.jan&&jk(i.jan)===jk(c));
+  if(!it){if(!jstock.includes(c)){jstock.unshift(c);save()}m="未登録のJANです: "+c+"(JANストックに入れました)"}
+  else{if(it.s==="need")it.cs=(it.cs||0)+1;else{it.s="need";it.cs=it.cs||1}save();m="要補充: "+it.n+"(ピック "+it.cs+"ケース)";try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}}
+ pmT=m;if(scanning&&scanT==="pick")sm.textContent=m;if(view===2)render()}
 function jAdd(raw){const c=normJ(raw);let m;if(!c)return;
  if(c.length>13)m="桁数が合いません: "+c;
  else if(!ckd(c))m="読み取りミスの可能性があります: "+c;
@@ -470,11 +484,11 @@ async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カ�
  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});vid.srcObject=stream;await vid.play()}catch(e){sm.textContent="カメラを使えませんでした。バーコードの数字を手入力してください。";return}
  scanning=true;sm.textContent="バーコードを画面に映してください";
  if("BarcodeDetector" in window){const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
-  const loop=async()=>{if(!scanning)return;try{const r=await det.detect(vid);if(r.length){got(r[0].rawValue);if(scanT!=="stock")return}}catch(e){}setTimeout(loop,200)};loop()}
+  const loop=async()=>{if(!scanning)return;try{const r=await det.detect(vid);if(r.length){got(r[0].rawValue);if(scanT!=="stock"&&scanT!=="pick")return}}catch(e){}setTimeout(loop,200)};loop()}
  else if(window.ZXing){try{zr=new ZXing.BrowserMultiFormatReader();zr.decodeFromVideoElement(vid,r=>{if(r&&scanning)got(r.getText())})}catch(e){sm.textContent="スキャンに失敗しました。手入力してください。"}}
  else sm.textContent="この端末ではスキャンできません。手入力してください。"}
 function closeScan(){scanning=false;try{zr&&zr.reset()}catch(e){}zr=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}ov.style.display="none"}
-function got(code){const t=scanT;if(t==="stock"||(view===5&&t==="search")){jAdd(code);return}if(scanning){try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}closeScan();
+function got(code){const t=scanT;if(t==="pick"||(view===2&&t==="search")){pAdd(code);return}if(t==="stock"||(view===5&&t==="search")){jAdd(code);return}if(scanning){try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}closeScan();
  if(t==="form"){fJan.value=code;return}
  code=normJ(code);const f=items.find(i=>i.jan&&jk(i.jan)===jk(code));
  if(f){qin.value=jk(code);q=jk(code);if(view)tab(0);else render()}
