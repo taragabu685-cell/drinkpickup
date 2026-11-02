@@ -100,6 +100,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div style="font-size:12px;color:var(--sub);margin:4px 0">補充が必要な商品のバーコードを読むと「要補充」になり、下のリストに出ます。同じ商品をもう一度読むと1ケース増えます(数は下のリストで±調整できます)。Bluetoothスキャナーは枠をタップしなくても読めます。</div>
 <input id="pIn" inputmode="none" placeholder="ここをタップしてスキャン" onkeydown="if(event.key==='Enter'){event.preventDefault();pAdd(this.value);this.value=''}">
 <button class="pri g" onclick="openScan('pick')">📷 カメラで連続スキャン</button>
+<button class="pri g" id="pclr" onclick="clearPicked()">ピック済をすべて未設定に戻す</button>
 <div id="pmsg" style="font-size:13px;margin-top:6px"></div>
 </div>
 <div class="add" id="jForm" style="display:none;margin:0 0 10px">
@@ -213,7 +214,7 @@ function resetDay(){if(confirm("全商品の状態をリセットしますか?")
 function render(){
  cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
  chips.innerHTML=(view!==0&&view!==2&&view!==6)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
- pForm.style.display=view===2?"":"none";pmsg.textContent=pmT;gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
+ pForm.style.display=view===2?"":"none";pmsg.textContent=pmT;pclr.textContent="ピック済をすべて未設定に戻す("+items.filter(i=>i.s==="need"&&i.pd).length+"件)";gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
@@ -366,6 +367,9 @@ function delJ(c){jstock=jstock.filter(x=>x!==c);save();render()}
 function clearJ(){if(confirm("ストックをすべて削除しますか?")){jstock=[];save();render()}}
 function copyJ(m,el){const list=jstock.join("\n"),t=m?`次のJANコードの飲料商品について、商品名・メーカー・容量・1ケースの入数をCSV形式(カンマ区切り)で出してください。\n見出しは「商品名,メーカー,JAN,売り場,区分,入数,シリーズ」。JANは13桁の数字のみ。売り場と区分は空欄でよい。わからない項目は空欄にして、推測で作らないでください。説明文は付けずCSVだけを出力してください。\n\n${list}`:list;
  cpy(t).then(ok=>{if(ok){jmsg=m?"調査依頼文をコピーしました":"JAN一覧をコピーしました";jm.textContent=jmsg;if(el){const o=el.textContent;el.textContent="コピーしました ✓";setTimeout(()=>{el.textContent=o},1500)}}else prompt("コピーしてください",t)})}
+function clearPicked(){const L=items.filter(i=>i.s==="need"&&i.pd);if(!L.length){alert("ピック済の商品はありません。");return}
+ if(!confirm("ピック済の "+L.length+"件を、すべて未設定(補充なし)に戻します。よろしいですか?"))return;
+ L.forEach(i=>{i.s="";i.pd=false;i.cs=0});pmT=L.length+"件を未設定に戻しました";save();render()}
 function togP(id){const i=items.find(x=>x.id===id);i.pd=!i.pd;save();render()}
 function pickRow(i){const nm=(i.sr&&!i.n.includes(i.sr)?i.sr+" ":"")+i.n,sub=pm==="maker"?(i.a||"未設定")+(i.sh?" "+shL(i.sh):""):(i.mk||"メーカー未設定");
  return `<div class="pk ${i.pd?"d":""}"><div class="pn"><div>${esc(nm)}</div><div class="loc">${esc(sub)}</div></div><div class="pc"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>${i.pk?`<div class="pb">${(i.cs||0)*i.pk}本</div>`:""}<button class="pd" onclick="togP(${i.id})">✓</button></div>`}
