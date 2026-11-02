@@ -177,10 +177,10 @@ input,select,textarea{font-size:16px;font-family:inherit}
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
 let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],posts=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
-const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,px:!!x.px,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,pd:!!x.pd,px:!!x.px,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:["need","done"].includes(x.s)?x.s:"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
 try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];posts=Array.isArray(d.posts)?d.posts:[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,posts,cfg}))}catch(e){}}
+function save(){items.forEach(i=>{if(i.s!=="need"&&i.pd)i.pd=false});try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,posts,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
 function tab(v){view=v;o1=-1;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
@@ -365,10 +365,9 @@ function delJ(c){jstock=jstock.filter(x=>x!==c);save();render()}
 function clearJ(){if(confirm("ストックをすべて削除しますか?")){jstock=[];save();render()}}
 function copyJ(m,el){const list=jstock.join("\n"),t=m?`次のJANコードの飲料商品について、商品名・メーカー・容量・1ケースの入数をCSV形式(カンマ区切り)で出してください。\n見出しは「商品名,メーカー,JAN,売り場,区分,入数,シリーズ」。JANは13桁の数字のみ。売り場と区分は空欄でよい。わからない項目は空欄にして、推測で作らないでください。説明文は付けずCSVだけを出力してください。\n\n${list}`:list;
  cpy(t).then(ok=>{if(ok){jmsg=m?"調査依頼文をコピーしました":"JAN一覧をコピーしました";jm.textContent=jmsg;if(el){const o=el.textContent;el.textContent="コピーしました ✓";setTimeout(()=>{el.textContent=o},1500)}}else prompt("コピーしてください",t)})}
-let pdn={};
-function togP(id){pdn[id]=!pdn[id];render()}
+function togP(id){const i=items.find(x=>x.id===id);i.pd=!i.pd;save();render()}
 function pickRow(i){const nm=(i.sr&&!i.n.includes(i.sr)?i.sr+" ":"")+i.n,sub=pm==="maker"?(i.a||"未設定")+(i.sh?" "+shL(i.sh):""):(i.mk||"メーカー未設定");
- return `<div class="pk ${pdn[i.id]?"d":""}"><div class="pn"><div>${esc(nm)}</div><div class="loc">${esc(sub)}</div></div><div class="pc"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>${i.pk?`<div class="pb">${(i.cs||0)*i.pk}本</div>`:""}<button class="pd" onclick="togP(${i.id})">✓</button></div>`}
+ return `<div class="pk ${i.pd?"d":""}"><div class="pn"><div>${esc(nm)}</div><div class="loc">${esc(sub)}</div></div><div class="pc"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>${i.pk?`<div class="pb">${(i.cs||0)*i.pk}本</div>`:""}<button class="pd" onclick="togP(${i.id})">✓</button></div>`}
 let xo={};
 function tx(id){xo[id]=!xo[id];render()}
 function lpD(i){for(const r of posts){if(r.rows.some(x=>(x.jan&&i.jan?jk(x.jan)===jk(i.jan):x.n===i.n)))return wdL(r.d.slice(0,10))}return ""}
