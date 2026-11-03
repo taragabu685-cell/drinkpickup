@@ -12,7 +12,7 @@
 :root[data-theme="dark"]{--bg:#12161c;--card:#1b222b;--tx:#e8edf3;--sub:#93a0b2;--bd:#2c3642;--ac:#5aa2ff;--need:#ff922b;--done:#51cf66;--out:#ff6b6b}
 :root{--sb0:#c3c9d1;--sb1:#fff}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sb0:#6b7686;--sb1:#2c3642}}:root[data-theme="dark"]{--sb0:#6b7686;--sb1:#2c3642}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0 auto;background:var(--bg);color:var(--tx);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;max-width:560px;padding:12px 12px 80px}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;max-width:560px;padding:12px 12px 96px}
 h1{font-size:18px;margin:4px 0 8px}
 .bar{display:none;height:8px;background:var(--bd);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--done);width:0;transition:width .3s}
 .sum{font-size:13px;color:var(--sub);margin:6px 0 10px;display:flex;justify-content:space-between}
@@ -53,6 +53,9 @@ input,select,textarea{font-size:16px;font-family:inherit}
 #srBtn{position:fixed;right:14px;bottom:calc(132px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--ac);color:#fff;border:0;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #scBtn{position:fixed;right:14px;bottom:calc(186px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #srBtn.on{outline:3px solid var(--need)}
+#fbar{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);z-index:30;box-shadow:0 -2px 8px rgba(0,0,0,.12)}
+#fbar button{position:static!important;flex:1;width:auto!important;height:44px!important;border-radius:22px!important;font-size:13px!important;padding:0 4px;white-space:nowrap;box-shadow:none!important;margin:0}
+#fbar #topBtn{display:block}
 #sbar{display:none;position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;max-width:560px;margin:0 auto;z-index:40;background:var(--card);padding:8px 10px;border-bottom:1px solid var(--bd);box-shadow:0 3px 10px rgba(0,0,0,.25);gap:6px;align-items:center}
 #sbar input{flex:1;min-width:0;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:16px}
 #topBtn{display:none;position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
@@ -172,7 +175,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 </div>
 </div>
 <div id="ov1" style="display:none;position:fixed;inset:0;z-index:999;background:var(--bg);overflow:auto;padding:12px calc(12px + env(safe-area-inset-right)) 24px calc(12px + env(safe-area-inset-left))"></div>
-<div id="bd" onclick="closeForm()"></div><button id="fab" onclick="clearForm();openForm()">＋</button><button id="scBtn" onclick="scQuick()" aria-label="カメラでスキャン">📷</button><button id="srBtn" onclick="srOpen()" aria-label="検索">🔍</button><div id="sbar"><input id="sin2" type="search" placeholder="商品名・メーカー・バーコード検索" enterkeyhint="search" oninput="srIn(this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"><button class="sec" onclick="srClr()">クリア</button><button class="sec" onclick="srClose()">閉じる</button></div><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
+<div id="bd" onclick="closeForm()"></div><div id="fbar"><button id="scBtn" onclick="scQuick()" aria-label="カメラでスキャン">📷 スキャン</button><button id="srBtn" onclick="srOpen()" aria-label="検索">🔍 検索</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲ 上へ</button><button id="fab" onclick="clearForm();openForm()">＋ 追加</button></div><div id="sbar"><input id="sin2" type="search" placeholder="商品名・メーカー・バーコード検索" enterkeyhint="search" oninput="srIn(this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"><button class="sec" onclick="srClr()">クリア</button><button class="sec" onclick="srClose()">閉じる</button></div>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
 <div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
@@ -420,8 +423,8 @@ let dupFrom=null;const ng=i=>i.g?items.filter(x=>x.g===i.g).length:1;
 const jk=j=>String(j||"").replace(/^0+/,"");
 function findEx(o){const same=o.jan?items.filter(i=>i.jan&&jk(i.jan)===jk(o.jan)):items.filter(i=>i.n===o.n&&i.mk===o.mk);if(!o.a)return same[0];return same.find(i=>i.a===o.a&&(i.sh||"")===(o.sh||""))||same.find(i=>!i.a)||null}
 function dupPlace(){if(!editId)return;dupFrom=editId;editId=null;ft.textContent="別の売り場にも展開";fb.textContent="展開する";fd.style.display="none";fd2.style.display="none";fA.value="";fSh.value=""}
-window.addEventListener("scroll",()=>{topBtn.style.display=(window.scrollY||document.documentElement.scrollTop||0)>300?"block":"none";topPos()},{passive:true});
-function topPos(){const on=bulk&&view===0,b=on?bb.offsetHeight+14+(parseFloat(bb.style.bottom)||0):0;topBtn.style.bottom=on?b+"px":"";srBtn.style.bottom=on?(b+54)+"px":"";scBtn.style.bottom=on?(b+108)+"px":""}
+
+function topPos(){const on=bulk&&view===0;fbar.style.bottom=on?(bb.offsetHeight+(parseFloat(bb.style.bottom)||0))+"px":""}
 function scQuick(){openScan(view===2?"pick":"search")}
 let srOn=false;
 function srOpen(){srOn=true;sbar.style.display="flex";sin2.value=qin.value;try{sin2.focus();sin2.select()}catch(e){}}
@@ -477,7 +480,7 @@ let bAr=true,bulk=false,bs={},curList=[],wo={};
 const bcnt=()=>Object.keys(bs).filter(k=>bs[k]).length;
 function bbPos(){try{const v=window.visualViewport;if(!v)return;const o=Math.max(0,window.innerHeight-v.height-v.offsetTop);bb.style.bottom=o+"px";topPos()}catch(e){}}
 try{if(window.visualViewport){visualViewport.addEventListener("resize",bbPos);visualViewport.addEventListener("scroll",bbPos)}}catch(e){}
-function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"220px":"";
+function bulkUI(){const on=view===0&&bulk;bkT.style.display=view===0&&bulk?"":"none";bkT.textContent=bulk?"一括変更を終了":"区分を一括変更";bb.style.display=on?"block":"none";document.body.style.paddingBottom=on?"290px":"";
  if(on){const k=bAr?"":bA.value;bAr=false;bA.innerHTML=`<option value="">売り場は変更しない</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");bA.value=k;bn.textContent=bcnt()+"件選択"}topPos()}
 function togBulk(){bulk=!bulk;bAr=true;bs={};render()}
 function clearQ(){q="";qin.value="";render();try{qin.focus()}catch(e){}}
