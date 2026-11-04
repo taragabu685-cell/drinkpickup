@@ -539,8 +539,11 @@ function closeScan(){scanning=false;try{zr&&zr.reset()}catch(e){}zr=null;if(stre
 function got(code){const t=scanT;if(t==="pick"||(view===2&&t==="search")){pAdd(code);return}if(t==="stock"||(view===5&&t==="search")){jAdd(code);return}if(scanning){try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}closeScan();
  if(t==="form"){fJan.value=code;return}
  code=normJ(code);const f=items.find(i=>i.jan&&jk(i.jan)===jk(code));
- if(f){const ms=items.filter(i=>i.jan&&jk(i.jan)===jk(code));q="";qin.value="";mfv="";if(cat!=="すべて"&&!ms.some(i=>(i.a||"未設定")===cat))cat="すべて";ms.forEach(i=>{xo[i.id]=true});hlIds=ms.map(i=>i.id);if(view)tab(0);else render();jumpHl()}
- else if(confirm("未登録のバーコードです("+code+")。商品として登録しますか?")){clearForm();fJan.value=code;openForm();fN.focus()}}
+ const ms0=items.filter(i=>i.jan&&jk(i.jan)===jk(code)),inCat=cat==="すべて"||ms0.some(i=>(i.a||"未設定")===cat);
+ if(f&&!inCat){const ar=[...new Set(ms0.map(i=>i.a||"未設定"))].join("・");
+  if(confirm("「"+f.n+"」は「"+ar+"」に登録されています。\n「"+cat+"」にも追加展開しますか?\n(キャンセルすると、その商品を表示します)")){q="";qin.value="";edit(f.id);dupPlace();if(cat!=="未設定")fA.value=cat;return}}
+ if(f){const ms=ms0;q="";qin.value="";mfv="";if(cat!=="すべて"&&!ms.some(i=>(i.a||"未設定")===cat))cat="すべて";ms.forEach(i=>{xo[i.id]=true});hlIds=ms.map(i=>i.id);if(view)tab(0);else render();jumpHl()}
+ else if(confirm("未登録のバーコードです("+code+")。"+(cat!=="すべて"?"「"+cat+"」に":"")+"商品として登録しますか?")){clearForm();fJan.value=code;if(cat!=="すべて"&&cat!=="未設定")fA.value=cat;openForm();fN.focus()}}
 function makeBackup(){const t=JSON.stringify({app:"hojuu",date:new Date().toLocaleString("ja-JP"),areas,items,memos,tasks,jstock});bk.value=t;bk.select();let ok=false;try{navigator.clipboard.writeText(t);ok=true}catch(e){}
  mb.textContent=ok?"コピーしました ✓ メモに貼り付けて保管":"下のテキストを長押ししてコピーしてください";setTimeout(()=>mb.textContent="バックアップ作成",3000)}
 function restoreBackup(){let d;try{d=JSON.parse(bk.value.trim())}catch(e){alert("テキストを読み取れませんでした。バックアップ全体を貼り付けてください。");return}
