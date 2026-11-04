@@ -372,9 +372,9 @@ function pruneJ(){jstock=jstock.filter(j=>!items.some(i=>i.jan&&jk(i.jan)===jk(j
 let lastP={c:"",t:0},pmT="";
 function pAdd(raw){const c=normJ(raw);if(!c)return;const now=Date.now();if(c===lastP.c&&now-lastP.t<2000){lastP.t=now;return}lastP={c,t:now};let m;
  if(c.length>13||!ckd(c))m="読み取りミスの可能性があります: "+c;
- else{const it=items.find(i=>i.jan&&jk(i.jan)===jk(c));
+ else{const ms=items.filter(i=>i.jan&&jk(i.jan)===jk(c)),it=(cat!=="すべて"&&ms.find(i=>(i.a||"未設定")===cat))||ms[0];
   if(!it){if(!jstock.includes(c)){jstock.unshift(c);save()}m="未登録のJANです: "+c+"(JANストックに入れました)"}
-  else{if(it.s==="need")it.cs=(it.cs||0)+1;else{it.s="need";it.cs=it.cs||1}save();m="要補充: "+it.n+"(ピック "+it.cs+"ケース)";try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}}
+  else{if(it.s==="need")it.cs=(it.cs||0)+1;else{it.s="need";it.cs=it.cs||1}save();m="要補充: "+it.n+(cat!=="すべて"?"["+(it.a||"未設定")+"]":"")+"(ピック "+it.cs+"ケース)"+(cat!=="すべて"&&(it.a||"未設定")!==cat?" ※選択中の売り場「"+cat+"」には登録がありません":"");try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}}
  pmT=m;if(scanning&&scanT==="pick")sm.textContent=m;if(view===2)render()}
 function jAdd(raw){const c=normJ(raw);let m;if(!c)return;
  if(c.length>13)m="桁数が合いません: "+c;
