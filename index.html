@@ -98,7 +98,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="sum" id="sumw" style="display:none"><span id="s1"></span><span id="s2"></span></div>
 <div class="srch" style="display:none"><span class="qw"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button id="qx" class="qx" onclick="clearQ()" aria-label="検索語を消す">×</button></span><button class="ib" onclick="openScan('search')">📷</button></div>
 <div id="frw" style="display:none;margin:-2px 0 8px"><button class="sec" onclick="resetF()" style="color:var(--ac)">絞り込みをすべてリセット(検索・売り場・メーカー)</button></div>
-<div id="stk"><div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t3" onclick="tab(3)">商談メモ</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t7" onclick="tab(7)">ツール</button></div>
+<div id="stk"><div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t7" onclick="tab(7)">ツール</button><button id="t3" onclick="tab(3)">メモ</button></div>
 <div class="chips" id="chips"></div></div>
 <button class="pri g" id="bkT" style="margin:0 0 8px;display:none" onclick="togBulk()">区分を一括変更</button>
 <div class="add" id="sForm" style="display:none;margin:0 0 10px">
@@ -129,8 +129,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 </div>
 <div class="add" id="tForm" style="display:none;margin:0 0 10px"><b style="font-size:14px">その他のタスクを追加</b><input id="tkIn" placeholder="例: 冷ケース2段目の値札確認" onkeydown="if(event.key==='Enter')addTask()"><button class="pri" onclick="addTask()">追加する</button></div>
 <div class="add" id="mForm" style="display:none;margin:0 0 10px">
-<b style="font-size:14px">商談メモを書く</b>
-<input id="mMk" list="mks" placeholder="メーカー名">
+<b style="font-size:14px">メモを書く</b>
+<input id="mMk" list="mks" placeholder="タイトル(例: メーカー名・件名)">
 <input id="mD" type="date">
 <textarea id="mX" rows="5" style="width:100%;padding:10px;margin:4px 0;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)" placeholder="商談内容、決まったこと、次回までの確認事項など"></textarea>
 <button class="pri" id="mSave" onclick="saveMemo()">保存する</button>
@@ -262,7 +262,7 @@ function render(){
   if(dn.length)h+=`<div class="gh"><span>完了済み</span><span>${dn.length}件 <button class="sec" onclick="clearDone()">まとめて削除</button></span></div>`+dn.map(row).join("");
   listEl.innerHTML=h||`<div class="empty">タスクはありません。売場巡回で商品の「在庫確認」などを押すと、ここに溜まります</div>`;return}
  if(view===3){const ms=memos.filter(m=>(!mfv||m.mk===mfv)&&(!q||(m.mk+m.x).toLowerCase().includes(q))).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id);
-  listEl.innerHTML=ms.length?ms.map(m=>`<div class="item"><div class="row"><div><div class="nm">${esc(m.mk)}</div><div class="loc">${esc(m.d)}</div></div><div><button class="sec" onclick="editMemo(${m.id})">編集</button><button class="sec" onclick="delMemo(${m.id})">削除</button></div></div><div style="white-space:pre-wrap;margin-top:6px;font-size:14px">${esc(m.x)}</div></div>`).join(""):`<div class="empty">商談メモはまだありません</div>`;return}
+  listEl.innerHTML=ms.length?ms.map(m=>`<div class="item"><div class="row"><div><div class="nm">${esc(m.mk)}</div><div class="loc">${esc(m.d)}</div></div><div><button class="sec" onclick="editMemo(${m.id})">編集</button><button class="sec" onclick="delMemo(${m.id})">削除</button></div></div><div style="white-space:pre-wrap;margin-top:6px;font-size:14px">${esc(m.x)}</div></div>`).join(""):`<div class="empty">メモはまだありません</div>`;return}
  const list=items.filter(i=>(!mfv||view>0||i.mk===mfv)&&(view===1?i.s==="out":view===2?(i.s==="need"&&(cat==="すべて"||(i.a||"未設定")===cat)):(cat==="すべて"||(i.a||"未設定")===cat))&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q)));
  const maker=view===2?pm==="maker":gmode==="maker",G={};curList=list;
  const anySh=list.some(i=>i.sh);
@@ -292,7 +292,7 @@ document.addEventListener("keydown",e=>{const t=e.target.tagName;if(t==="INPUT"|
  if(/^\d$/.test(e.key))sb+=e.key});
 const listEl=document.getElementById("list");
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function saveMemo(){const mk=mMk.value.trim(),x=mX.value.trim();if(!mk||!x){alert("メーカー名とメモ内容を入力してください。");return}
+function saveMemo(){const mk=mMk.value.trim(),x=mX.value.trim();if(!mk||!x){alert("タイトルとメモ内容を入力してください。");return}
  const o={mk,d:mD.value||today(),x};
  if(editM)Object.assign(memos.find(m=>m.id===editM),o);else memos.push({id:Date.now(),...o});
  clearMemo();save();render()}
