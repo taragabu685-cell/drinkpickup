@@ -443,7 +443,7 @@ function mnuPos(){mnu.style.bottom=(fbar.offsetHeight+(parseFloat(fbar.style.bot
 function mnuToggle(){const o=mnu.style.display==="block";if(o){mnuClose();return}mnu.style.display=mbd.style.display="block";mnuPos()}
 function mnuClose(){mnu.style.display=mbd.style.display="none"}
 let hlIds=[];
-function jumpHl(){setTimeout(()=>{const els=hlIds.map(id=>document.getElementById("it"+id)).filter(Boolean);if(!els.length)return;els.forEach(e=>{e.classList.remove("hl");void e.offsetWidth;e.classList.add("hl")});try{els[0].scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}},60)}
+function jumpHl(){setTimeout(()=>{const els=hlIds.map(id=>document.getElementById("it"+id)).filter(Boolean);if(!els.length)return;els.forEach(e=>{e.classList.remove("hl");void e.offsetWidth;e.classList.add("hl")});try{els[0].scrollIntoView({block:"center",behavior:"instant"})}catch(e){}},0)}
 function scQuick(){mnuClose();openScan(view===2?"pick":"search")}
 let srOn=false;
 function srOpen(){srOn=true;sbar.style.display="flex";sin2.value=qin.value;try{sin2.focus();sin2.select()}catch(e){}}
