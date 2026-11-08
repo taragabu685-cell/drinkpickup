@@ -98,7 +98,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="sum" id="sumw" style="display:none"><span id="s1"></span><span id="s2"></span></div>
 <div class="srch" style="display:none"><span class="qw"><input id="qin" placeholder="商品名・メーカー・バーコード検索" oninput="q=this.value.trim().toLowerCase();render()" onkeydown="if(event.key==='Enter'&&/^\d{8,14}$/.test(this.value.trim())){scanT='search';got(this.value.trim())}"><button id="qx" class="qx" onclick="clearQ()" aria-label="検索語を消す">×</button></span><button class="ib" onclick="openScan('search')">📷</button></div>
 <div id="frw" style="display:none;margin:-2px 0 8px"><button class="sec" onclick="resetF()" style="color:var(--ac)">絞り込みをすべてリセット(検索・売り場・メーカー)</button></div>
-<div id="stk"><div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t7" onclick="tab(7)">ツール</button><button id="t3" onclick="tab(3)">メモ</button></div>
+<div id="stk"><div class="tabs"><button id="t0" class="on" onclick="tab(0)">売場巡回</button><button id="t2" onclick="tab(2)">倉庫ピック</button><button id="t4" onclick="tab(4)">タスク</button><button id="t5" onclick="tab(5)">スキャン</button><button id="t6" onclick="tab(6)">指数</button><button id="t8" onclick="tab(8)">在庫過多</button><button id="t7" onclick="tab(7)">ツール</button><button id="t3" onclick="tab(3)">メモ</button></div>
 <div class="chips" id="chips"></div></div>
 <button class="pri g" id="bkT" style="margin:0 0 8px;display:none" onclick="togBulk()">区分を一括変更</button>
 <div class="add" id="sForm" style="display:none;margin:0 0 10px">
@@ -196,14 +196,14 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <script>
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
-let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],posts=[],cfg={rate:65,rd:"round"},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
-const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,pd:!!x.pd,px:!!x.px,wd:String(x.wd||""),a:String(x.a||""),sh:String(x.sh||""),s:x.s==="need"?"need":"",cs:Number(x.cs)||0,m:String(x.m||"")});
+let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],posts=[],cfg={rate:65,rd:"round",ovr:50},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
+const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,pd:!!x.pd,px:!!x.px,wd:String(x.wd||""),ss:x.ss!==undefined&&x.ss!==null&&x.ss!==""?+x.ss:null,ssd:String(x.ssd||""),ov:!!x.ov,a:String(x.a||""),sh:String(x.sh||""),s:x.s==="need"?"need":"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
 try{let r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);items=d.items.map(norm);areas=d.areas||areas;memos=d.memos||[];tasks=d.tasks||[];jstock=d.jstock||[];posts=Array.isArray(d.posts)?d.posts:[];cfg=Object.assign(cfg,d.cfg||{})}else{r=localStorage.getItem(OLD);items=r?JSON.parse(r).map(norm):sample}}catch(e){items=sample}
 function save(){items.forEach(i=>{if(i.s!=="need"&&i.pd)i.pd=false});try{localStorage.setItem(KEY,JSON.stringify({items,areas,memos,tasks,jstock,posts,cfg}))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ORD={need:0,"":1,out:2,done:3};
-function tab(v){view=v;o1=-1;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
+function tab(v){view=v;o1=-1;if(v!==0)bulk=false;t0.className=v?"":"on";t2.className=v===2?"on":"";t3.className=v===3?"on":"";t4.className=v===4?"on":"";t5.className=v===5?"on":"";t6.className=v===6?"on":"";t7.className=v===7?"on":"";t8.className=v===8?"on":"";render();try{document.getElementById("t"+v).scrollIntoView({inline:"nearest",block:"nearest"})}catch(e){}}
 function setCat(i){cat=cl[i];render()}
 function wdL(d){const m=String(d).match(/^(\d{4})-(\d\d)-(\d\d)$/);if(!m)return d;return (+m[1]===new Date().getFullYear()?"":m[1]+"/")+(+m[2])+"/"+(+m[3])}
 function pdate(v){v=hw(String(v||"")).trim();let m=v.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})$/);if(m){const n=new Date();let y=n.getFullYear();if(new Date(y,m[1]-1,m[2])>n)y--;return y+"-"+String(m[1]).padStart(2,"0")+"-"+String(m[2]).padStart(2,"0")}return ""}
@@ -232,14 +232,14 @@ function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
 function render(){
  cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
- chips.innerHTML=(view!==0&&view!==2&&view!==6)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
+ chips.innerHTML=(view!==0&&view!==2&&view!==6&&view!==8)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
  pForm.style.display=view===2?"":"none";pmsg.textContent=pmT;pall.textContent="ピックリストを全リセット(要補充"+items.filter(i=>i.s==="need").length+"件)";pclr.textContent="ピック済をすべて未設定に戻す("+items.filter(i=>i.s==="need"&&i.pd).length+"件)";gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv)?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv)?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="need"&&i.pd).length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
@@ -252,6 +252,9 @@ function render(){
   {const ks=Object.keys(G).sort();ks.forEach(k=>G[k].a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja")));sxOrd=ks.flatMap(k=>G[k].a)}
   if(o1>=0){listEl.innerHTML="";oneR();return}
   listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">${cfg.only===false?"該当する商品がありません":"指数投稿の対象がありません。売場巡回タブで商品の「指数」ボタンを押すと、ここに出ます"}</div>`;return}
+ if(view===8){const L=items.filter(i=>(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.sr).toLowerCase().includes(q))&&(!cfg.ovo||i.ov||(ovX(i)||0)>0));L.sort((a,b)=>(ovX(b)==null?-1e9:ovX(b))-(ovX(a)==null?-1e9:ovX(a))||a.n.localeCompare(b.n,"ja"));
+  sp.textContent="";const nOv=items.filter(i=>i.ov).length;
+  listEl.innerHTML=`<div class="item"><div class="sxg"><label>目安率(週販の)<input class="sin" type="number" inputmode="numeric" value="${cfg.ovr||50}" onchange="setOvr(this.value)">%</label><button class="sec" onclick="togOvF()">${cfg.ovo?"全商品を表示":"過多のみ表示"}</button></div><div class="loc">発注時に自動発注された分を後から減らす用。過多=システム在庫−目安。在庫過多ONは${nOv}品。在庫過多をONにすると、1ヶ月以内に指数投稿がなければ指数ボタンもONになります。</div>${ovMsg?`<div class="loc" style="color:#c0392b">${esc(ovMsg)}</div>`:""}</div>`+(L.map(ovRow).join("")||`<div class="empty">該当する商品がありません</div>`);return}
  if(view===5){jm.textContent=jmsg;
   listEl.innerHTML=jstock.length?`<div class="gh"><span>未登録JAN ${jstock.length}件</span><span><button class="sec" onclick="copyJ(0,this)">JAN一覧をコピー</button><button class="sec" onclick="copyJ(1,this)">調査依頼文をコピー</button></span></div>`+jstock.map(c=>`<div class="item need"><div class="row"><div class="nm" style="font-family:monospace">${c}</div><button class="sec" onclick="delJ('${c}')">削除</button></div></div>`).join("")+`<div class="row"><button class="sec" onclick="clearJ()">すべて削除</button></div>`:`<div class="empty">ストックはありません。スキャナーやカメラで読み取ると、未登録のJANだけが溜まります</div>`;return}
  if(view===4){const nm=id=>items.find(i=>i.id===id);
@@ -337,7 +340,7 @@ function series(arr,f){{const ct={},pl={},od=[];arr.forEach(i=>{if(i.sr)ct[i.sr]
   const un=m.length-c("need")-c("out")-c("done");
   out.push(`<div class="item sr ${cls}"><div class="row"><div style="flex:1" onclick="tso('${k}')"><div class="nm">${esc(i.sr)} <span class="loc">${m.length}品 ${open?"▲":"▼"}</span></div><div class="loc">${bg}</div></div><button class="sec" onclick="setAllS('${m.map(x=>x.id).join(",")}','done')">全てピック済</button></div>${open?`<div class="vr">${m.map(x=>f(x)).join("")}</div>`:""}</div>`)});
  return out}
-const IMK=[["n",["商品名","品名","名称"]],["mk",["メーカー"]],["jan",["jan","バーコード"]],["a",["売り場","売場"]],["sh",["区分","棚段","段"]],["pk",["入数","入り数"]],["sr",["シリーズ"]],["wd",["週販日","入力日"]],["wsv",["週販"]],["pxn",["投稿数","投稿"]]],IMN={n:"商品名",mk:"メーカー",jan:"JAN",a:"売り場",sh:"区分",pk:"入数",sr:"シリーズ",wsv:"週販",pxn:"投稿数",wd:"週販日"};
+const IMK=[["n",["商品名","品名","名称"]],["mk",["メーカー"]],["jan",["jan","バーコード"]],["a",["売り場","売場"]],["sh",["区分","棚段","段"]],["pk",["入数","入り数"]],["sr",["シリーズ"]],["wd",["週販日","入力日"]],["wsv",["週販"]],["pxn",["投稿数","投稿"]],["ss",["システム在庫","システム"]]],IMN={n:"商品名",mk:"メーカー",jan:"JAN",a:"売り場",sh:"区分",pk:"入数",sr:"シリーズ",wsv:"週販",pxn:"投稿数",wd:"週販日",ss:"システム在庫"};
 let impR=[];
 const hw=s=>String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-65248));
 function csvParse(t,d){const r=[];let row=[],c="",q=false;for(let i=0;i<t.length;i++){const ch=t[i];
@@ -352,7 +355,7 @@ function impPrev(){const t=im.value.replace(/^\uFEFF/,"");impR=[];imgo.style.dis
  let ne=0,up=0,sk=0;const na=[];
  rows.slice(1).forEach(r=>{const g=k=>col[k]===undefined?"":String(r[col[k]]||"").trim(),n=g("n");if(!n){sk++;return}
   const o={n,mk:g("mk"),jan:/e\+/i.test(g("jan"))?"":normJ(g("jan")),a:g("a"),sh:hw(g("sh")).trim().replace(/^(\d+)段$/,"$1").replace(/^区分(\d+)$/,"$1"),pk:Number((hw(g("pk")).match(/\d+/)||[0])[0]),sr:g("sr")};
-  {const wv=hw(g("wsv")).replace(/[^\d.]/g,""),pv=hw(g("pxn")).replace(/[^\d.]/g,"");if(wv!=="")o.wsv=Math.round(+wv);if(pv!=="")o.pxn=Math.round(+pv);const dv=pdate(g("wd"));if(dv)o.wd=dv}
+  {const wv=hw(g("wsv")).replace(/[^\d.]/g,""),pv=hw(g("pxn")).replace(/[^\d.]/g,"");if(wv!=="")o.wsv=Math.round(+wv);if(pv!=="")o.pxn=Math.round(+pv);const dv=pdate(g("wd"));if(dv)o.wd=dv;const sv=hw(g("ss")).replace(/[^\d.]/g,"");if(sv!=="")o.ss=Math.round(+sv)}
   const ex=findEx(o);
   if(o.a&&!areas.includes(o.a)&&!na.includes(o.a))na.push(o.a);
   ex?up++:ne++;impR.push({o})});
@@ -467,6 +470,17 @@ function pcH(i){return i.wsv&&i.pxn!=null?Math.round(i.pxn/i.wsv*100)+"%":""}
 function sxRow(i){const open=cfg.bc||bo6[i.id];
  const sub=[i.mk,(i.a||"")+(i.sh?" "+shL(i.sh):""),i.pk?i.pk+"本/ケース":""].filter(x=>x&&String(x).trim()).join(" ・ ");
  return `<div class="item sxc ${i.pf?"done":""}"><div class="row"><div class="nm" style="flex:1">${esc(i.n)}</div><button class="sec" onclick="tb6(${i.id})">${open?"バーコードを隠す":"バーコード"}</button><button class="sec" onclick="togPx(${i.id})">${pxAny(i)?"対象を外す":"対象にする"}</button></div><div class="loc">${esc(sub)}</div>${wsBlock(i)}${open?(i.jan?bc(i.jan):`<div class="loc">JAN未登録</div>`):""}</div>`}
+function lpRaw(i){for(const r of posts){if(r.rows.some(x=>(x.jan&&i.jan?jk(x.jan)===jk(i.jan):x.n===i.n)))return r.d.slice(0,10)}return ""}
+function recentPost(i){const d=lpRaw(i);if(!d)return false;const t=new Date(d+"T00:00:00"),n=new Date();n.setHours(0,0,0,0);return (n-t)/864e5<=30}
+let ovMsg="";
+function ovT(i){return i.wsv==null?null:Math.round(i.wsv*(cfg.ovr||50)/100)}
+function ovX(i){const t=ovT(i);return t==null||i.ss==null?null:i.ss-t}
+function ovTxt(i){const t=ovT(i),x=ovX(i);if(t==null)return "週販を入力すると目安が出ます";let h="目安 "+t+"本";if(x==null)return h+" ・ システム在庫を入力";if(x>0){h+=" ・ <b style='color:#c0392b'>過多 +"+x+"本</b>";if(i.pk>0&&x>=i.pk)h+="(約"+Math.floor(x/i.pk)+"ケース)"}else h+=" ・ 適正("+x+")";return h}
+function setSS(id,v){const i=items.find(x=>x.id===id);i.ss=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));i.ssd=i.ss==null?"":today();save();const e=document.getElementById("ot"+id);if(e)e.innerHTML=ovTxt(i)}
+function setOvr(v){const n=Math.round(+v);if(!(n>0&&n<=500))return;cfg.ovr=n;save();render()}
+function togOvF(){cfg.ovo=!cfg.ovo;save();render()}
+function togOv(id){const i=items.find(x=>x.id===id);i.ov=!i.ov;ovMsg="";if(i.ov){if(recentPost(i))ovMsg=i.n+":1ヶ月以内(" +wdL(lpRaw(i))+")に指数投稿済みのため、指数ボタンはそのままです";else{items.forEach(x=>{if(x===i||(i.g&&x.g===i.g))x.px=true});ovMsg=i.n+":1ヶ月以内の指数投稿がないため、指数ボタンをONにしました"}}save();render()}
+function ovRow(i){const x=ovX(i);return `<div class="item ${i.ov?"need":""}"><div class="nm">${esc(i.n)}</div><div class="loc">${esc(i.mk||"メーカー未設定")} ・ ${esc(i.a||"未設定")}${i.sh?" "+shL(i.sh):""}${i.pk?" ・ 入数"+i.pk:""}</div><div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${i.wsv==null?"":i.wsv}" oninput="setW(${i.id},this.value);document.getElementById('ot${i.id}').innerHTML=ovTxt(items.find(z=>z.id===${i.id}))"></label><label>システム在庫<input class="sin" type="number" inputmode="numeric" value="${i.ss==null?"":i.ss}" oninput="setSS(${i.id},this.value)"></label></div><div class="loc" id="ot${i.id}">${ovTxt(i)}</div><div class="loc">${i.wd?"週販"+wdL(i.wd)+" ":""}${i.ssd?"在庫"+wdL(i.ssd)+" ":""}${lpD(i)?"投稿完了 "+lpD(i):"投稿履歴なし"}</div><div class="st" style="grid-template-columns:1fr 1fr"><button class="${i.ov?"done on":""}" onclick="togOv(${i.id})">在庫過多${i.ov?" ON":""}</button><button class="${pxAny(i)?"done on":""}" onclick="togPx(${i.id})">指数${pxAny(i)?" ON":""}</button></div></div>`}
 function setW(id,v){const i=items.find(x=>x.id===id);i.wsv=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));i.wd=i.wsv==null?"":today();save();const r=document.getElementById("rf"+id),c=document.getElementById("pc"+id);if(r)r.textContent=i.wsv==null?"－":idxOf(i.wsv);if(c)c.textContent=pcH(i);const d=document.getElementById("wd"+id);if(d)d.textContent=i.wd?wdL(i.wd)+"入力":""}
 function setP(id,v){const i=items.find(x=>x.id===id);i.pxn=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));save();const c=document.getElementById("pc"+id);if(c)c.textContent=pcH(i)}
 function useRef(id){const i=items.find(x=>x.id===id);if(i.wsv==null)return;i.pxn=idxOf(i.wsv);save();render()}
@@ -517,8 +531,8 @@ function bApply(){const ids=Object.keys(bs).filter(k=>bs[k]);if(!ids.length){ale
 function two(id){wo[id]=!wo[id];render()}
 function wsBlock(i){const w=i.wsv,p=i.pxn;return `<div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc" id="wd${i.id}">${i.wd?wdL(i.wd)+"入力":""}</span><span class="loc">参考${cfg.rate}%</span>${lpD(i)?`<span class="loc">投稿完了 ${lpD(i)}</span>`:""}<button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span></div>`}
 function cpy(t){return new Promise(res=>{const fb2=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}};if(fb2()){res(true);return}const fb=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();res(ok)}catch(e){res(false)}};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>res(true),fb)}else fb()})}
-const EXH=["商品名","メーカー","JAN","売り場","区分","入数","シリーズ","週販","投稿数","週販日"];
-const exRows=()=>items.map(i=>[i.n,i.mk,i.jan,i.a,i.sh,i.pk||"",i.sr,i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn,i.wd||""]);
+const EXH=["商品名","メーカー","JAN","売り場","区分","入数","シリーズ","週販","投稿数","週販日","システム在庫"];
+const exRows=()=>items.map(i=>[i.n,i.mk,i.jan,i.a,i.sh,i.pk||"",i.sr,i.wsv==null?"":i.wsv,i.pxn==null?"":i.pxn,i.wd||"",i.ss==null?"":i.ss]);
 function exportCopy(){const cl=v=>String(v).replace(/[\t\r\n]+/g," "),t=[EXH,...exRows()].map((r,k)=>r.map((v,j)=>{v=cl(v);return k>0&&j===2&&v?"'"+v:v}).join("\t")).join("\n");
  cpy(t).then(ok=>{if(ok)exm.textContent=items.length+"件をコピーしました。スプレッドシートのセルを選んで貼り付けてください。";else prompt("コピーしてください",t)})}
 function exportCsv(){const q=v=>'"'+String(v).replace(/"/g,'""')+'"',t="﻿"+[EXH,...exRows()].map(r=>r.map(q).join(",")).join("\r\n");
@@ -535,6 +549,7 @@ async function openScan(t){scanT=t;ov.style.display="flex";sm.textContent="カ�
 function closeScan(){scanning=false;try{zr&&zr.reset()}catch(e){}zr=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}ov.style.display="none"}
 function got(code){const t=scanT;if(t==="pick"||(view===2&&t==="search")){pAdd(code);return}if(t==="stock"||(view===5&&t==="search")){jAdd(code);return}if(scanning){try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}closeScan();
  if(t==="form"){fJan.value=code;return}
+ if(view===8){q=normJ(code);qin.value=q;render();return}
  code=normJ(code);const f=items.find(i=>i.jan&&jk(i.jan)===jk(code));
  const ms0=items.filter(i=>i.jan&&jk(i.jan)===jk(code)),inCat=cat==="すべて"||ms0.some(i=>(i.a||"未設定")===cat);
  if(f&&!inCat){const ar=[...new Set(ms0.map(i=>i.a||"未設定"))].join("・");
