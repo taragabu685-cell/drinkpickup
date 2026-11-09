@@ -378,6 +378,7 @@ function pAdd(raw){const c=normJ(raw);if(!c)return;const now=Date.now();if(c===l
  else{const ms=items.filter(i=>i.jan&&jk(i.jan)===jk(c)),it=(cat!=="すべて"&&ms.find(i=>(i.a||"未設定")===cat))||ms[0];
   if(!it){if(confirm("未登録のバーコードです("+c+")。"+(cat!=="すべて"?"「"+cat+"」に":"")+"商品として登録しますか?\n(登録するとそのままピックリストに入ります。キャンセルするとJANストックに入れます)")){if(scanning)closeScan();clearForm();pickReg=true;fJan.value=c;if(cat!=="すべて"&&cat!=="未設定")fA.value=cat;openForm();fN.focus();pmT="登録中: "+c;if(view===2)render();return}
    if(!jstock.includes(c)){jstock.unshift(c);save()}m="未登録のJANです: "+c+"(JANストックに入れました)"}
+  else if(cat!=="すべて"&&!ms.some(i=>(i.a||"未設定")===cat)&&confirm("「"+it.n+"」は「"+[...new Set(ms.map(i=>i.a||"未設定"))].join("・")+"」に登録されています。\n「"+cat+"」にも追加展開しますか?\n(キャンセルすると、登録のある売り場の商品をピックします)")){if(scanning)closeScan();edit(it.id);dupPlace();if(cat!=="未設定")fA.value=cat;pickReg=true;pmT="展開中: "+it.n;if(view===2)render();return}
   else{if(it.s==="need")it.cs=(it.cs||0)+1;else{it.s="need";it.cs=it.cs||1}save();m="要補充: "+it.n+(cat!=="すべて"?"["+(it.a||"未設定")+"]":"")+"(ピック "+it.cs+"ケース)"+(cat!=="すべて"&&(it.a||"未設定")!==cat?" ※選択中の売り場「"+cat+"」には登録がありません":"");try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}}
  pmT=m;if(scanning&&scanT==="pick")sm.textContent=m;if(view===2)render()}
 function jAdd(raw){const c=normJ(raw);let m;if(!c)return;
