@@ -510,7 +510,7 @@ function recentPost(i){const d=lpRaw(i);if(!d)return false;const t=new Date(d+"T
 let ovMsg="";
 function ovT(i){return i.wsv==null?null:Math.round(i.wsv*(cfg.ovr||50)/100)}
 function ovX(i){const t=ovT(i);return t==null||i.ss==null?null:i.ss-t}
-function ovTxt(i){const t=ovT(i),x=ovX(i);if(t==null)return "週販を入力すると目安が出ます";let h="1日平均 "+(i.wsv/7).toFixed(1)+"本 ・ 目安 "+t+"本";if(x==null)return h+" ・ システム在庫を入力";if(x>0){h+=" ・ <b style='color:#c0392b'>過多 +"+x+"本</b>";if(i.pk>0&&x>=i.pk)h+="(約"+Math.floor(x/i.pk)+"ケース)"}else h+=" ・ 適正("+x+")";return h}
+function ovTxt(i){const t=ovT(i),x=ovX(i);if(t==null)return "週販を入力すると目安が出ます";let h="1日平均 "+(i.wsv/7).toFixed(1)+"本 ・ 目安 "+t+"本";if(x==null)return h+" ・ システム在庫を入力";if(i.wsv>0)h+=" ・ 在庫"+(i.ss/(i.wsv/7)).toFixed(1)+"日分";if(x>0){h+=" ・ <b style='color:#c0392b'>過多 +"+x+"本</b>";if(i.pk>0&&x>=i.pk)h+="(約"+Math.floor(x/i.pk)+"ケース)"}else h+=" ・ 適正("+x+")";return h}
 function setSS(id,v){const i=items.find(x=>x.id===id);i.ss=v===""||isNaN(+v)?null:Math.max(0,Math.round(+v));i.ssd=i.ss==null?"":nowS();save();const e=document.getElementById("ot"+id);if(e)e.innerHTML=ovTxt(i);const d=document.getElementById("sd"+id);if(d)d.textContent=i.ssd?dtL(i.ssd)+"入力":""}
 function setOvr(v){const n=Math.round(+v);if(!(n>0&&n<=500))return;cfg.ovr=n;save();render()}
 function togOvF(){cfg.ovo=!cfg.ovo;save();render()}
