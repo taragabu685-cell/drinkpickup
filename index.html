@@ -153,7 +153,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
-<div class="row"><button class="sec" onclick="renameArea()">売り場名を変更</button><button class="sec" onclick="renameSh()">区分名を変更</button></div>
+<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">売り場名の変更</div><div class="row"><select id="raO"></select><input id="raN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameArea()">変更</button></div>
+<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">区分名の変更</div><div class="row"><select id="shO"></select><input id="shN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameSh()">変更</button></div>
 </div>
 <div id="toolsBox" style="display:none">
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button></div>
@@ -234,13 +235,13 @@ function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.
  else{const ni={id:Date.now(),...o,s:pickReg?"need":"",cs:pickReg?1:0,m:"",g:""};if(dupFrom){const sc=items.find(x=>x.id===dupFrom);if(sc){sc.g=sc.g||"g"+Date.now();ni.g=sc.g}}items.push(ni)}
  closeForm();pruneJ();save();render()}
 function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
-function renameSh(){const vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));if(!vs.length){alert("区分が登録された商品がありません。");return}
- const o=(prompt("名前を変えたい区分を入力\n"+vs.join(" / "))||"").trim();if(!o)return;if(!vs.includes(o)){alert("「"+o+"」という区分はありません。");return}
- const n=(prompt("「"+o+"」の新しい名前")||"").trim();if(!n||n===o)return;const c=items.filter(i=>i.sh===o).length;
- if(!confirm("区分「"+o+"」の "+c+"件を「"+n+"」に変更します。よろしいですか?"))return;items.forEach(i=>{if(i.sh===o)i.sh=n});save();render()}
-function renameArea(){const o=(prompt("名前を変えたい売り場を入力\n"+areas.join(" / "))||"").trim();if(!o)return;if(!areas.includes(o)){alert("「"+o+"」という売り場はありません。");return}
- const n=(prompt("「"+o+"」の新しい名前")||"").trim();if(!n||n===o)return;if(areas.includes(n)){alert("「"+n+"」はすでにあります。");return}
- areas[areas.indexOf(o)]=n;items.forEach(i=>{if(i.a===o)i.a=n});if(cat===o)cat=n;save();render()}
+function fillRn(){if(view!==7)return;const ko=raO.value,ks=shO.value,vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));
+ raO.innerHTML=`<option value="">変える売り場を選ぶ</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");raO.value=areas.includes(ko)?ko:"";
+ shO.innerHTML=`<option value="">変える区分を選ぶ</option>`+vs.map(a=>`<option value="${esc(a)}">${esc(a)}(${items.filter(i=>i.sh===a).length}件)</option>`).join("");shO.value=vs.includes(ks)?ks:""}
+function renameSh(){const o=shO.value,n=shN.value.trim();if(!o){alert("変える区分を選んでください。");return}if(!n||n===o){alert("新しい名前を入力してください。");return}
+ const c=items.filter(i=>i.sh===o).length;if(!confirm("区分「"+o+"」の "+c+"件を「"+n+"」に変更します。よろしいですか?"))return;items.forEach(i=>{if(i.sh===o)i.sh=n});shN.value="";save();render()}
+function renameArea(){const o=raO.value,n=raN.value.trim();if(!o){alert("変える売り場を選んでください。");return}if(!n||n===o){alert("新しい名前を入力してください。");return}if(areas.includes(n)){alert("「"+n+"」はすでにあります。");return}
+ areas[areas.indexOf(o)]=n;items.forEach(i=>{if(i.a===o)i.a=n});if(cat===o)cat=n;raN.value="";save();render()}
 function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
 function render(){
@@ -253,7 +254,7 @@ function render(){
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();wlLbl();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();wlLbl();fillRn();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="need"&&i.pd).length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
