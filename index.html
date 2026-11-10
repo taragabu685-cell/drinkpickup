@@ -188,7 +188,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 </div>
 <div id="ov1" style="display:none;position:fixed;inset:0;z-index:999;background:var(--bg);overflow:auto;padding:12px calc(12px + env(safe-area-inset-right)) 24px calc(12px + env(safe-area-inset-left))"></div>
 <div id="bd" onclick="closeForm()"></div><div id="mbd" onclick="mnuClose()"></div>
-<div id="mnu"><div class="row"><h1 style="margin:0">🥤 飲料補充チェック</h1><button class="sec" onclick="mnuClose()">閉じる ✕</button></div><div class="mrow"><span class="loc">表示サイズ</span><button class="sec" id="zb" onclick="cycleZ()"></button></div><div class="mrow"><select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・区分順</option><option value="maker">表示: メーカー別</option></select></div><div class="mrow"><select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select></div></div>
+<div id="mnu"><div class="row"><h1 style="margin:0">🥤 飲料補充チェック</h1><button class="sec" onclick="mnuClose()">閉じる ✕</button></div><div class="mrow"><span class="loc">表示サイズ</span><button class="sec" id="zb" onclick="cycleZ()"></button></div><div class="mrow"><span class="loc">画面を消さない</span><button class="sec" id="wlB" onclick="togWl()"></button></div><div class="mrow"><select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・区分順</option><option value="maker">表示: メーカー別</option></select></div><div class="mrow"><select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select></div></div>
 <div id="fbar"><button id="mnBtn" onclick="mnuToggle()" aria-label="メニュー">≡</button><button id="scBtn" onclick="scQuick()" aria-label="カメラでスキャン">📷</button><button id="srBtn" onclick="srOpen()" aria-label="検索">🔍</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'instant'})">▲</button><button id="fab" onclick="clearForm();openForm()">＋</button></div><div id="sbar"><input id="sin2" type="search" placeholder="商品名・メーカー・バーコード検索" enterkeyhint="search" oninput="srIn(this.value)" onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(/^\d{8,14}$/.test(v)){scanT='search';got(v)}this.blur()}"><button class="sec" onclick="srClr()">クリア</button><button class="sec" onclick="srClose()">閉じる</button></div>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
 <div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
@@ -253,7 +253,7 @@ function render(){
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();wlLbl();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="need"&&i.pd).length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
@@ -471,6 +471,12 @@ function mnuPos(){mnu.style.bottom=(fbar.offsetHeight+(parseFloat(fbar.style.bot
 function mnuToggle(){const o=mnu.style.display==="block";if(o){mnuClose();return}mnu.style.display=mbd.style.display="block";mnuPos()}
 function mnuClose(){mnu.style.display=mbd.style.display="none"}
 let hlIds=[];
+let wl=null;
+async function wlOn(){try{if(cfg.wl===false||!navigator.wakeLock||document.visibilityState!=="visible"||wl)return;const l=await navigator.wakeLock.request("screen");wl=l;l.addEventListener("release",()=>{if(wl===l)wl=null})}catch(e){wl=null}}
+function wlOff(){try{wl&&wl.release()}catch(e){}wl=null}
+function wlLbl(){wlB.textContent=cfg.wl===false?"OFF":"ON"+(navigator.wakeLock?"":"(非対応)")}
+function togWl(){cfg.wl=cfg.wl===false;save();if(cfg.wl===false)wlOff();else wlOn();wlLbl()}
+try{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")wlOn()});document.addEventListener("pointerdown",wlOn,{passive:true});document.addEventListener("touchstart",wlOn,{passive:true})}catch(e){}
 function jmpHeads(){return [...listEl.querySelectorAll(".gh")]}
 function jmpTog(){if(jpl.style.display==="block"){jmpClose();return}const hs=jmpHeads();if(!hs.length)return;jpl.innerHTML=hs.map((h,k)=>`<button onclick="jmpGo(${k})">${esc(h.firstElementChild?h.firstElementChild.textContent:"")} <span class="loc">${esc(h.lastElementChild&&h.lastElementChild!==h.firstElementChild?h.lastElementChild.textContent.replace(/この区分.*$/,"").trim():"")}</span></button>`).join("");jpl.style.display="block";jmp.className="on"}
 function jmpClose(){jpl.style.display="none";jmp.className=""}
@@ -594,7 +600,7 @@ function restoreBackup(){let d;try{d=JSON.parse(bk.value.trim())}catch(e){alert(
  if(!d||d.app!=="hojuu"||!Array.isArray(d.items)){alert("このアプリのバックアップではありません。");return}
  if(!confirm(d.items.length+"件の商品で現在のデータを置き換えます。よろしいですか?"))return;
  items=d.items.map(norm);if(Array.isArray(d.areas))areas=d.areas;memos=Array.isArray(d.memos)?d.memos:[];tasks=Array.isArray(d.tasks)?d.tasks:[];jstock=Array.isArray(d.jstock)?d.jstock.map(String):[];cat="すべて";save();render();bk.value="";alert("復元しました。")}
-render();
+render();wlOn();
 </script>
 </body>
 </html>
