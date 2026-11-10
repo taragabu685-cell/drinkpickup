@@ -54,7 +54,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 #srBtn{position:fixed;right:14px;bottom:calc(132px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--ac);color:#fff;border:0;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #scBtn{position:fixed;right:14px;bottom:calc(186px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #srBtn.on{outline:3px solid var(--need)}
-#jmp{position:fixed;right:0;top:38%;width:24px;height:60px;padding:0;border:1px solid var(--bd);border-right:0;border-radius:12px 0 0 12px;background:var(--card);color:var(--sub);font-size:13px;opacity:.4;z-index:29}#jmp.on{opacity:.95;color:var(--ac)}#jpl{position:fixed;right:30px;top:12%;max-height:62vh;overflow-y:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:35;max-width:70vw}#jpl button{display:block;width:100%;text-align:left;padding:10px 12px;margin:0;border:0;border-bottom:1px solid var(--bd);background:none;color:var(--tx);font-size:14px;border-radius:0}
+#jmp{position:fixed;right:0;top:38%;width:32px;height:64px;padding:0;border:1px solid var(--bd);border-right:0;border-radius:12px 0 0 12px;background:#cfe8fa;color:#1f5f8f;border-color:#9fc9e6;font-size:16px;opacity:.85;z-index:29;box-shadow:-1px 1px 4px rgba(0,0,0,.18)}#jmp.on{opacity:1;background:#a9d4f2}#jpl{position:fixed;right:30px;top:12%;max-height:62vh;overflow-y:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:35;max-width:70vw}#jpl button{display:block;width:100%;text-align:left;padding:10px 12px;margin:0;border:0;border-bottom:1px solid var(--bd);background:none;color:var(--tx);font-size:14px;border-radius:0}
 #fbar{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);z-index:30;box-shadow:0 -2px 8px rgba(0,0,0,.12)}
 #fbar button{position:static!important;flex:1;width:auto!important;height:46px!important;border-radius:23px!important;font-size:22px!important;padding:0 4px;white-space:nowrap;box-shadow:none!important;margin:0}
 #fbar #topBtn{display:block}
@@ -195,7 +195,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div class="bbr"><input id="bR" list="srs" placeholder="新しいシリーズ名" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
 <button class="pri" style="margin-top:2px" onclick="bApply()">選択した商品に適用</button></div>
-<button id="jmp" onclick="jmpTog()" style="display:none">区</button><div id="jpl" style="display:none"></div>
+<button id="jmp" onclick="jmpTog()" style="display:none">↕️</button><div id="jpl" style="display:none"></div>
 <div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
 
 <script>
