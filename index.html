@@ -472,12 +472,9 @@ function mnuToggle(){const o=mnu.style.display==="block";if(o){mnuClose();return
 function mnuClose(){mnu.style.display=mbd.style.display="none"}
 let hlIds=[];
 let wl=null;
-let nsV=null;
-function nsOn(){try{if(!nsV){nsV=document.createElement("video");nsV.setAttribute("playsinline","");nsV.muted=true;nsV.loop=true;nsV.style.cssText="position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;pointer-events:none";nsV.src="data:video/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwEAAAAAAAH5EU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHYTbuMU6uEElTDZ1OsggEeTbuMU6uEHFO7a1OsggHj7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsirXsYMPQkBNgI1MYXZmNjAuMTYuMTAwV0GNTGF2ZjYwLjE2LjEwMESJiECPQAAAAAAAFlSua8GuAQAAAAAAADjXgQFzxYjOngGVu6pZKJyBACK1nIN1bmSIgQCGhVZfVlA4g4EBI+ODhB3NZQDgibCBELqBEJqBAhJUw2f8c3OgY8CAZ8iaRaOHRU5DT0RFUkSHjUxhdmY2MC4xNi4xMDBzc9ZjwItjxYjOngGVu6pZKGfIoUWjh0VOQ09ERVJEh5RMYXZjNjAuMzEuMTAyIGxpYnZweGfIoUWjiERVUkFUSU9ORIeTMDA6MDA6MDEuMDAwMDAwMDAwAB9DtnW/54EAo6OBAACAEAIAnQEqEAAQAABHCIWFiIWEiAICAAwNYAD+/6tQgKOVgQH0ALEBAAEQEAAYABhYL/QACAAAHFO7a5G7j7OBALeK94EB8YIBn/CBAw==";document.body.appendChild(nsV)}const r=nsV.play();if(r&&r.catch)r.catch(()=>{})}catch(e){}}
-function nsOff(){try{nsV&&nsV.pause()}catch(e){}}
-async function wlOn(){if(cfg.wl===false||document.visibilityState!=="visible")return;try{if(!navigator.wakeLock)throw 0;if(!wl){const l=await navigator.wakeLock.request("screen");wl=l;l.addEventListener("release",()=>{if(wl===l)wl=null})}}catch(e){wl=null;nsOn()}}
-function wlOff(){try{wl&&wl.release()}catch(e){}wl=null;nsOff()}
-function wlLbl(){wlB.textContent=cfg.wl===false?"OFF":"ON"}
+async function wlOn(){if(cfg.wl===false||!navigator.wakeLock||document.visibilityState!=="visible"||wl)return;try{const l=await navigator.wakeLock.request("screen");wl=l;l.addEventListener("release",()=>{if(wl===l)wl=null})}catch(e){wl=null}}
+function wlOff(){try{wl&&wl.release()}catch(e){}wl=null}
+function wlLbl(){wlB.textContent=cfg.wl===false?"OFF(タップでON)":"ON(タップでOFF)"}
 function togWl(){cfg.wl=cfg.wl===false;save();if(cfg.wl===false)wlOff();else wlOn();wlLbl()}
 try{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")wlOn()});document.addEventListener("pointerdown",wlOn,{passive:true});document.addEventListener("touchstart",wlOn,{passive:true})}catch(e){}
 function jmpHeads(){return [...listEl.querySelectorAll(".gh")]}
