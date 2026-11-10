@@ -53,6 +53,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 #srBtn{position:fixed;right:14px;bottom:calc(132px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--ac);color:#fff;border:0;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #scBtn{position:fixed;right:14px;bottom:calc(186px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:30}
 #srBtn.on{outline:3px solid var(--need)}
+#jmp{position:fixed;right:0;top:38%;width:24px;height:60px;padding:0;border:1px solid var(--bd);border-right:0;border-radius:12px 0 0 12px;background:var(--card);color:var(--sub);font-size:13px;opacity:.4;z-index:29}#jmp.on{opacity:.95;color:var(--ac)}#jpl{position:fixed;right:30px;top:12%;max-height:62vh;overflow-y:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:35;max-width:70vw}#jpl button{display:block;width:100%;text-align:left;padding:10px 12px;margin:0;border:0;border-bottom:1px solid var(--bd);background:none;color:var(--tx);font-size:14px;border-radius:0}
 #fbar{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);z-index:30;box-shadow:0 -2px 8px rgba(0,0,0,.12)}
 #fbar button{position:static!important;flex:1;width:auto!important;height:46px!important;border-radius:23px!important;font-size:22px!important;padding:0 4px;white-space:nowrap;box-shadow:none!important;margin:0}
 #fbar #topBtn{display:block}
@@ -151,6 +152,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
+<div class="row"><button class="sec" onclick="renameArea()">売り場名を変更</button><button class="sec" onclick="renameSh()">区分名を変更</button></div>
 </div>
 <div id="toolsBox" style="display:none">
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button></div>
@@ -189,8 +191,10 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="fbar"><button id="mnBtn" onclick="mnuToggle()" aria-label="メニュー">≡</button><button id="scBtn" onclick="scQuick()" aria-label="カメラでスキャン">📷</button><button id="srBtn" onclick="srOpen()" aria-label="検索">🔍</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'instant'})">▲</button><button id="fab" onclick="clearForm();openForm()">＋</button></div><div id="sbar"><input id="sin2" type="search" placeholder="商品名・メーカー・バーコード検索" enterkeyhint="search" oninput="srIn(this.value)" onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(/^\d{8,14}$/.test(v)){scanT='search';got(v)}this.blur()}"><button class="sec" onclick="srClr()">クリア</button><button class="sec" onclick="srClose()">閉じる</button></div>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
 <div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
+<div class="bbr"><input id="bR" list="srs" placeholder="新しいシリーズ名" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
 <button class="pri" style="margin-top:2px" onclick="bApply()">選択した商品に適用</button></div>
+<button id="jmp" onclick="jmpTog()" style="display:none">区</button><div id="jpl" style="display:none"></div>
 <div id="ov"><video id="vid" playsinline muted></video><div id="sm"></div><button class="pri g" style="max-width:300px" onclick="closeScan()">閉じる</button></div>
 
 <script>
@@ -229,6 +233,13 @@ function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.
  else{const ni={id:Date.now(),...o,s:pickReg?"need":"",cs:pickReg?1:0,m:"",g:""};if(dupFrom){const sc=items.find(x=>x.id===dupFrom);if(sc){sc.g=sc.g||"g"+Date.now();ni.g=sc.g}}items.push(ni)}
  closeForm();pruneJ();save();render()}
 function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
+function renameSh(){const vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));if(!vs.length){alert("区分が登録された商品がありません。");return}
+ const o=(prompt("名前を変えたい区分を入力\n"+vs.join(" / "))||"").trim();if(!o)return;if(!vs.includes(o)){alert("「"+o+"」という区分はありません。");return}
+ const n=(prompt("「"+o+"」の新しい名前")||"").trim();if(!n||n===o)return;const c=items.filter(i=>i.sh===o).length;
+ if(!confirm("区分「"+o+"」の "+c+"件を「"+n+"」に変更します。よろしいですか?"))return;items.forEach(i=>{if(i.sh===o)i.sh=n});save();render()}
+function renameArea(){const o=(prompt("名前を変えたい売り場を入力\n"+areas.join(" / "))||"").trim();if(!o)return;if(!areas.includes(o)){alert("「"+o+"」という売り場はありません。");return}
+ const n=(prompt("「"+o+"」の新しい名前")||"").trim();if(!n||n===o)return;if(areas.includes(n)){alert("「"+n+"」はすでにあります。");return}
+ areas[areas.indexOf(o)]=n;items.forEach(i=>{if(i.a===o)i.a=n});if(cat===o)cat=n;save();render()}
 function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
 function render(){
@@ -241,7 +252,7 @@ function render(){
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
  shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
- toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
+ jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
  const done=items.filter(i=>i.s==="need"&&i.pd).length,need=items.filter(i=>i.s==="need").length,out=items.filter(i=>i.s==="out").length,un=items.length-done-need-out;
  pb.style.width=(items.length?done/items.length*100:0)+"%";
@@ -459,6 +470,10 @@ function mnuPos(){mnu.style.bottom=(fbar.offsetHeight+(parseFloat(fbar.style.bot
 function mnuToggle(){const o=mnu.style.display==="block";if(o){mnuClose();return}mnu.style.display=mbd.style.display="block";mnuPos()}
 function mnuClose(){mnu.style.display=mbd.style.display="none"}
 let hlIds=[];
+function jmpHeads(){return [...listEl.querySelectorAll(".gh")]}
+function jmpTog(){if(jpl.style.display==="block"){jmpClose();return}const hs=jmpHeads();if(!hs.length)return;jpl.innerHTML=hs.map((h,k)=>`<button onclick="jmpGo(${k})">${esc(h.firstElementChild?h.firstElementChild.textContent:"")} <span class="loc">${esc(h.lastElementChild&&h.lastElementChild!==h.firstElementChild?h.lastElementChild.textContent.replace(/この区分.*$/,"").trim():"")}</span></button>`).join("");jpl.style.display="block";jmp.className="on"}
+function jmpClose(){jpl.style.display="none";jmp.className=""}
+function jmpGo(k){const h=jmpHeads()[k];jmpClose();if(!h)return;window.scrollTo({top:Math.max(0,h.getBoundingClientRect().top+window.scrollY-stk.offsetHeight-4),behavior:"instant"})}
 function jumpHl(){setTimeout(()=>{const els=hlIds.map(id=>document.getElementById("it"+id)).filter(Boolean);if(!els.length)return;els.forEach(e=>{e.classList.remove("hl");void e.offsetWidth;e.classList.add("hl")});try{els[0].scrollIntoView({block:"center",behavior:"instant"})}catch(e){}},0)}
 function scQuick(){mnuClose();openScan(view===2?"pick":"search")}
 let srOn=false;
@@ -540,10 +555,10 @@ function bAll(){curList.forEach(i=>{bs[i.id]=true});render()}
 function bNone(){bs={};render()}
 function cbTap(el){const x=el.parentNode.querySelector(".bk");if(x)x.click()}
 function bApply(){const ids=Object.keys(bs).filter(k=>bs[k]);if(!ids.length){alert("商品を選択してください。");return}
- const a=bA.value,s=bS.value.trim(),c=bC.checked;if(!a&&!s&&!c){alert("変更する売り場、または新しい区分を入力してください。");return}
+ const a=bA.value,s=bS.value.trim(),c=bC.checked,sr=bR.value.trim();if(!a&&!s&&!c&&!sr){alert("変更する売り場、新しい区分、またはシリーズ名を入力してください。");return}
  if(!confirm(ids.length+"件の商品を変更します。よろしいですか?"))return;
- items.forEach(i=>{if(!bs[i.id])return;if(a)i.a=a;if(c)i.sh="";else if(s)i.sh=s});
- bs={};bS.value="";bC.checked=false;bAr=true;save();render()}
+ items.forEach(i=>{if(!bs[i.id])return;if(a)i.a=a;if(c)i.sh="";else if(s)i.sh=s;if(sr){i.sr=sr;if(i.g)items.forEach(x=>{if(x.g===i.g)x.sr=sr})}});
+ bs={};bS.value="";bR.value="";bC.checked=false;bAr=true;save();render()}
 function two(id){wo[id]=!wo[id];render()}
 function wsBlock(i){const w=i.wsv,p=i.pxn;return `<div class="sxg"><label>週販<input class="sin" type="number" inputmode="numeric" value="${w==null?"":w}" oninput="setW(${i.id},this.value)"></label><span class="loc" id="wd${i.id}">${i.wd?wdL(i.wd)+"入力":""}</span><span class="loc">参考${cfg.rate}%</span>${lpD(i)?`<span class="loc">投稿完了 ${lpD(i)}</span>`:""}<button class="rb" id="rf${i.id}" onclick="useRef(${i.id})">${w==null?"－":idxOf(w)}</button><label>投稿<input class="sin" type="number" inputmode="numeric" value="${p==null?"":p}" oninput="setP(${i.id},this.value)"></label><span class="spc" id="pc${i.id}">${pcH(i)}</span><label>システム在庫<input class="sin" type="number" inputmode="numeric" value="${i.ss==null?"":i.ss}" oninput="setSS(${i.id},this.value)"></label><span class="loc" id="sd${i.id}">${i.ssd?dtL(i.ssd)+"入力":""}</span></div>`}
 function cpy(t){return new Promise(res=>{const fb2=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}};if(fb2()){res(true);return}const fb=()=>{try{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();res(ok)}catch(e){res(false)}};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>res(true),fb)}else fb()})}
