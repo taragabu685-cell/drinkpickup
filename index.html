@@ -153,8 +153,8 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
-<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">売り場名の変更</div><div class="row"><select id="raO"></select><input id="raN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameArea()">変更</button></div>
-<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">区分名の変更</div><div class="row"><select id="shO"></select><input id="shN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameSh()">変更</button></div><div id="rnm" style="font-size:12px;color:var(--sub);margin-top:4px"></div>
+<div style="font-size:13px;color:var(--sub);margin:12px 0 4px">売り場名の変更</div><select id="raO" style="width:100%"></select><div style="display:flex;gap:6px;margin-top:6px"><input id="raN" placeholder="新しい名前" style="flex:1;min-width:0;margin:0"><button class="sec" style="flex:none;white-space:nowrap;border:1px solid var(--ac);border-radius:8px;padding:8px 12px;text-decoration:none;color:var(--ac)" onclick="renameArea()">変更する</button></div>
+<div style="font-size:13px;color:var(--sub);margin:12px 0 4px">区分名の変更</div><select id="shO" style="width:100%"></select><div style="display:flex;gap:6px;margin-top:6px"><input id="shN" placeholder="新しい名前" style="flex:1;min-width:0;margin:0"><button class="sec" style="flex:none;white-space:nowrap;border:1px solid var(--ac);border-radius:8px;padding:8px 12px;text-decoration:none;color:var(--ac)" onclick="renameSh()">変更する</button></div><div id="rnm" style="font-size:12px;color:var(--sub);margin-top:4px"></div>
 </div>
 <div id="toolsBox" style="display:none">
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button></div>
@@ -235,7 +235,7 @@ function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.
  else{const ni={id:Date.now(),...o,s:pickReg?"need":"",cs:pickReg?1:0,m:"",g:""};if(dupFrom){const sc=items.find(x=>x.id===dupFrom);if(sc){sc.g=sc.g||"g"+Date.now();ni.g=sc.g}}items.push(ni)}
  closeForm();pruneJ();save();render()}
 function addArea(){const n=(prompt("追加する売り場の名前")||"").trim();if(n&&!areas.includes(n)){areas.push(n);save();render()}}
-function fillRn(){if(view!==7)return;const ko=raO.value,ks=shO.value,vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));
+function fillRn(){const ko=raO.value,ks=shO.value,vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));
  raO.innerHTML=`<option value="">変える売り場を選ぶ</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");raO.value=areas.includes(ko)?ko:"";
  shO.innerHTML=`<option value="">変える区分を選ぶ</option>`+vs.map(a=>`<option value="${esc(a)}">${esc(a)}(${items.filter(i=>i.sh===a).length}件)</option>`).join("");shO.value=vs.includes(ks)?ks:""}
 let rnT="";
