@@ -154,7 +154,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <button class="pri g" id="fc" onclick="closeForm()">キャンセル</button>
 <div class="row"><button class="sec" onclick="addArea()">売り場を追加</button><button class="sec" onclick="delArea()">売り場を削除</button></div>
 <div style="font-size:12px;color:var(--sub);margin:8px 0 2px">売り場名の変更</div><div class="row"><select id="raO"></select><input id="raN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameArea()">変更</button></div>
-<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">区分名の変更</div><div class="row"><select id="shO"></select><input id="shN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameSh()">変更</button></div>
+<div style="font-size:12px;color:var(--sub);margin:8px 0 2px">区分名の変更</div><div class="row"><select id="shO"></select><input id="shN" placeholder="新しい名前" style="flex:1;min-width:0"><button class="sec" onclick="renameSh()">変更</button></div><div id="rnm" style="font-size:12px;color:var(--sub);margin-top:4px"></div>
 </div>
 <div id="toolsBox" style="display:none">
 <div class="row" style="margin-top:10px"><button class="sec" onclick="resetDay()">今日の状態をリセット</button></div>
@@ -238,10 +238,12 @@ function addArea(){const n=(prompt("追加する売り場の名前")||"").trim()
 function fillRn(){if(view!==7)return;const ko=raO.value,ks=shO.value,vs=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b)));
  raO.innerHTML=`<option value="">変える売り場を選ぶ</option>`+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");raO.value=areas.includes(ko)?ko:"";
  shO.innerHTML=`<option value="">変える区分を選ぶ</option>`+vs.map(a=>`<option value="${esc(a)}">${esc(a)}(${items.filter(i=>i.sh===a).length}件)</option>`).join("");shO.value=vs.includes(ks)?ks:""}
-function renameSh(){const o=shO.value,n=shN.value.trim();if(!o){alert("変える区分を選んでください。");return}if(!n||n===o){alert("新しい名前を入力してください。");return}
- const c=items.filter(i=>i.sh===o).length;if(!confirm("区分「"+o+"」の "+c+"件を「"+n+"」に変更します。よろしいですか?"))return;items.forEach(i=>{if(i.sh===o)i.sh=n});shN.value="";save();render()}
-function renameArea(){const o=raO.value,n=raN.value.trim();if(!o){alert("変える売り場を選んでください。");return}if(!n||n===o){alert("新しい名前を入力してください。");return}if(areas.includes(n)){alert("「"+n+"」はすでにあります。");return}
- areas[areas.indexOf(o)]=n;items.forEach(i=>{if(i.a===o)i.a=n});if(cat===o)cat=n;raN.value="";save();render()}
+let rnT="";
+function rnMsg(m){rnT=m;const e=document.getElementById("rnm");if(e)e.textContent=m}
+function renameSh(){const o=shO.value,n=shN.value.trim();if(!o){rnMsg("変える区分をプルダウンから選んでください。");return}if(!n){rnMsg("新しい名前を入力してください。");return}if(n===o){rnMsg("同じ名前です。");return}
+ const c=items.filter(i=>i.sh===o).length;items.forEach(i=>{if(i.sh===o)i.sh=n});shN.value="";save();render();rnMsg("区分「"+o+"」の "+c+"件を「"+n+"」に変更しました。")}
+function renameArea(){const o=raO.value,n=raN.value.trim();if(!o){rnMsg("変える売り場をプルダウンから選んでください。");return}if(!n){rnMsg("新しい名前を入力してください。");return}if(n===o){rnMsg("同じ名前です。");return}
+ const c=items.filter(i=>i.a===o).length,mg=areas.includes(n);if(mg)areas=areas.filter(x=>x!==o);else areas[areas.indexOf(o)]=n;items.forEach(i=>{if(i.a===o)i.a=n});if(cat===o)cat=n;raN.value="";save();render();rnMsg("売り場「"+o+"」の "+c+"件を「"+n+"」"+(mg?"に統合しました。":"に変更しました。"))}
 function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(" / "));if(n&&areas.includes(n)){if(confirm("「"+n+"」を削除します。商品は「未設定」になります。")){areas=areas.filter(x=>x!==n);items.forEach(i=>{if(i.a===n)i.a=""});if(cat===n)cat="すべて";save();render()}}}
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
 function render(){
