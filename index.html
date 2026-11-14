@@ -362,7 +362,7 @@ function cycleZ(){zi=(zi+1)%3;try{localStorage.setItem("hojuu-zoom",zi)}catch(e)
 applyZ();
 let to={};const tc=id=>tasks.filter(x=>x.iid===id&&!x.done).length;
 function tto(id){to[id]=!to[id];render()}
-let pm="maker",jmsg="",so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27");
+let pm="shelf",jmsg="",so={};const ek=s=>encodeURIComponent(s).replace(/'/g,"%27");
 function tso(k){k=decodeURIComponent(k);const cur=so[k]===undefined?view>0:so[k];so[k]=!cur;render()}
 function setAllS(ids,s){ids.split(",").forEach(id=>{const it=items.find(x=>x.id==id);if(it){if(s==="done"){if(it.s==="need")it.pd=true}else{it.s=s;if(s==="need"&&!it.cs)it.cs=1}}});save();render()}
 function series(arr,f){{const ct={},pl={},od=[];arr.forEach(i=>{if(i.sr)ct[i.sr]=(ct[i.sr]||0)+1});arr.forEach(i=>{if(view!==0&&view!==2&&i.sr&&ct[i.sr]>1){if(pl[i.sr])return;pl[i.sr]=1;arr.filter(x=>x.sr===i.sr).forEach(x=>od.push(x))}else od.push(i)});od.forEach(i=>{if(!i.sr){sbp="";return}if(i.sr!==sbp){sbn++;sbp=i.sr}sbk[i.id]=sbn%2})}if(view===0)return arr.map(f);const cnt={};arr.forEach(i=>{if(i.sr)cnt[i.sr]=(cnt[i.sr]||0)+1});const dn={},out=[];
