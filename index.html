@@ -153,10 +153,10 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <b style="font-size:14px" id="ft">商品を追加</b>
 <input id="fN" placeholder="商品名(例: 伊右衛門 600ml)">
 <input id="fMk" list="mks" placeholder="メーカー(例: サントリー)"><datalist id="mks"></datalist>
-<input id="fSr" list="srs" placeholder="シリーズ名(例: 伊右衛門)※まとめ表示用"><datalist id="srs"></datalist><datalist id="shs"></datalist>
+<input id="fSr" list="srs" placeholder="シリーズ名(例: 伊右衛門)※まとめ表示用"><datalist id="srs"></datalist><datalist id="shs"></datalist><datalist id="shs2"></datalist>
 <div class="two"><input id="fJan" inputmode="numeric" placeholder="JAN(スキャナで読取可)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"><button class="ib" style="margin:4px 0" onclick="openScan('form')">📷</button></div>
 <input id="fPk" type="number" inputmode="numeric" min="1" placeholder="入数(1ケースの本数 例: 24)">
-<div class="two"><select id="fA"></select><input id="fSh" list="shs" placeholder="区分(例: 2)"></div>
+<div class="two"><select id="fA" onchange="shFill()"></select><input id="fSh" list="shs" placeholder="区分(例: 2)"></div>
 <button class="pri" id="fb" onclick="submitItem()">追加する</button>
 <button class="pri g" id="fd2" style="display:none" onclick="cloneItem(editId)">⧉ この商品を複製して新規作成(JANは空欄)</button>
 <button class="pri g" id="fd" style="display:none" onclick="dupPlace()">＋ この商品を別の売り場にも展開する</button>
@@ -201,7 +201,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <div id="mnu"><div class="row"><h1 style="margin:0">🥤 飲料補充チェック</h1><button class="sec" onclick="mnuClose()">閉じる ✕</button></div><div class="mrow"><span class="loc">表示サイズ</span><button class="sec" id="zb" onclick="cycleZ()"></button></div><div class="mrow"><span class="loc">シリーズ名を薄く表示</span><button class="sec" id="srnB" onclick="togSrn()"></button></div><div class="mrow"><span class="loc">画面を消さない</span><button class="sec" id="wlB" onclick="togWl()"></button></div><div class="mrow"><select id="gm" onchange="if(view===2)pm=this.value;else gmode=this.value;render()"><option value="shelf">表示: 売り場・区分順</option><option value="maker">表示: メーカー別</option></select></div><div class="mrow"><select id="mf" onchange="mfv=this.value;if(view===3&&!editM)mMk.value=mfv;render()"></select></div></div>
 <div id="fbar"><button id="mnBtn" onclick="mnuToggle()" aria-label="メニュー">≡</button><button id="scBtn" onclick="scQuick()" aria-label="カメラでスキャン">📷</button><button id="srBtn" onclick="srOpen()" aria-label="検索">🔍</button><button id="topBtn" onclick="window.scrollTo({top:0,behavior:'instant'})">▲</button><button id="fab" onclick="clearForm();openForm()">＋</button></div><div id="sbar"><input id="sin2" type="search" placeholder="商品名・メーカー・バーコード検索" enterkeyhint="search" oninput="srIn(this.value)" onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(/^\d{8,14}$/.test(v)){scanT='search';got(v)}this.blur()}"><button class="sec" onclick="srClr()">クリア</button><button class="sec" onclick="srClose()">閉じる</button></div>
 <div id="bb"><div class="row"><b id="bn" style="font-size:13px">0件選択</b><span><button class="sec" onclick="bAll()">表示中をすべて選択</button><button class="sec" onclick="bNone()">解除</button><button class="sec" onclick="togBulk()">終了</button></span></div>
-<div class="bbr"><select id="bA"></select><input id="bS" list="shs" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
+<div class="bbr"><select id="bA" onchange="shFill2()"></select><input id="bS" list="shs2" placeholder="新しい区分" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <div class="bbr"><input id="bR" list="srs" placeholder="新しいシリーズ名" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();bApply()}"></div>
 <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin:4px 0"><input type="checkbox" id="bC" style="width:auto;margin:0">区分を空にする</label>
 <button class="pri" style="margin-top:2px" onclick="bApply()">選択した商品に適用</button></div>
@@ -232,8 +232,11 @@ function setS(id,s){const it=items.find(x=>x.id===id);it.s=it.s===s?"":s;if(it.s
 function adj(id,d){const it=items.find(x=>x.id===id);it.cs=Math.max(0,(it.cs||0)+d);save();render()}
 function setM(id,v){items.find(x=>x.id===id).m=v;save()}
 function del(id){if(confirm("この商品を削除しますか?")){items=items.filter(x=>x.id!==id);tasks=tasks.filter(t=>t.iid!==id);save();render()}}
-function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fd.style.display="";fd2.style.display="";openForm()}
-function cloneItem(id){const i=items.find(x=>x.id===id);if(!i)return;clearForm();fN.value=i.n;fMk.value=i.mk;fJan.value="";fA.value=i.a;fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を複製(名前とJANを変えて追加)";fb.textContent="追加する";openForm();try{fN.focus();fN.select()}catch(e){}}
+function shOpts(a){return [...new Set(items.filter(i=>i.sh&&(!a||i.a===a)).map(i=>i.sh))].sort((x,y)=>shK(x).localeCompare(shK(y))).map(s=>`<option value="${esc(s)}">`).join("")}
+function shFill(){shs.innerHTML=shOpts(fA.value)}
+function shFill2(){shs2.innerHTML=shOpts(bA.value)}
+function edit(id){const i=items.find(x=>x.id===id);editId=id;fN.value=i.n;fMk.value=i.mk;fJan.value=i.jan;fA.value=i.a;shFill();fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を編集";fb.textContent="保存する";fd.style.display="";fd2.style.display="";openForm()}
+function cloneItem(id){const i=items.find(x=>x.id===id);if(!i)return;clearForm();fN.value=i.n;fMk.value=i.mk;fJan.value="";fA.value=i.a;shFill();fSh.value=i.sh;fPk.value=i.pk||"";fSr.value=i.sr;ft.textContent="商品を複製(名前とJANを変えて追加)";fb.textContent="追加する";openForm();try{fN.focus();fN.select()}catch(e){}}
 function clearForm(){pickReg=false;editId=null;fN.value=fMk.value=fJan.value="";fSh.value="";fPk.value="";fSr.value="";ft.textContent="商品を追加";fb.textContent="追加する";fd.style.display="none";fd2.style.display="none";dupFrom=null}
 function submitItem(){const n=fN.value.trim();if(!n)return;const jan=normJ(fJan.value);
  const src=items.find(x=>x.id===(editId||dupFrom)),ign=x=>src&&(x.id===src.id||(src.g&&x.g===src.g));
@@ -263,7 +266,7 @@ function render(){
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
  const mkl=[...new Set([...items.map(i=>i.mk),...memos.map(m=>m.mk)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"));
  mf.innerHTML=`<option value="">メーカー: すべて</option>`+mkl.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");if(!mkl.includes(mfv))mfv="";mf.value=mfv;
- shs.innerHTML=[...new Set(items.map(i=>i.sh).filter(Boolean))].sort((a,b)=>shK(a).localeCompare(shK(b))).map(s=>`<option value="${esc(s)}">`).join("");
+ shFill();shFill2();
  srs.innerHTML=[...new Set(items.map(i=>i.sr).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join("");
  jmp.style.display=(view===0||view===2)&&!bulk?"block":"none";if(jmp.style.display==="none")jmpClose();wlLbl();fillRn();toolsBox.style.display=view===7?"":"none";srBtn.style.display=scBtn.style.display=[0,1,2,6,8].includes(view)?"":"none";srBtn.className=q?"on":"";if(srOn&&![0,1,2,6,8].includes(view))srClose();if(srOn&&document.activeElement!==sin2)sin2.value=qin.value;qx.style.display=qin.value?"block":"none";frw.style.display=(q||cat!=="すべて"||mfv||(view===0&&sfAny()))?"block":"none";bulkUI();mf.style.display=(view===0||view===3)?"":"none";mForm.style.display=view===3?"":"none";tForm.style.display=view===4?"":"none";jForm.style.display=view===5?"":"none";fab.style.display=view===0&&!bulk?"":"none";sForm.style.display=view===6?"":"none";t5.textContent="スキャン"+(jstock.length?" "+jstock.length:"");{const pn=items.filter(i=>i.px&&!i.pf).length;t6.textContent="指数"+(pn?" "+pn:"")}{const n=tasks.filter(t=>!t.done).length;t4.textContent="タスク"+(n?" "+n:"")}
  mks.innerHTML=mkl.map(m=>`<option value="${esc(m)}">`).join("");
@@ -459,7 +462,7 @@ function lpT(i){const d=lpD(i);return d?"投稿完了 "+d:""}
 function rowS(i){const wt=i.px&&(i.wsv!=null||i.pxn!=null)?"週販"+(i.wsv==null?"－":i.wsv)+"/投稿"+(i.pxn==null?"－":i.pxn):"",sub=[ng(i)>1?"◎"+ng(i)+"か所展開":"",wt,lpT(i),i.s==="need"?(i.cs||0)+"ケース"+(i.pk?"＝"+(i.cs||0)*i.pk+"本":""):""].filter(x=>x&&x.trim()).join(" ・ "),tn=tc(i.id);
  const b=(k,l)=>`<button class="${k} ${i.s===k?"on":""}" onclick="setS(${i.id},'${k}')">${l}</button>`;
  return `<div id="it${i.id}" class="pk cp ${rpC(i)}" style="${srS(i)}">${bulk?`<input type="checkbox" class="bk" ${bs[i.id]?"checked":""} onchange="togB(${i.id})">`:""}<div class="pn" onclick="${bulk?"cbTap(this)":"tx("+i.id+")"}"><div>${esc(i.n)}${cfg.srn!==false&&i.sr?` <span style="opacity:.55;font-size:11px">${esc(i.sr)}</span>`:""}${tn?` <span style="color:var(--need)">●${tn}</span>`:""}</div>${sub?`<div class="loc">${esc(sub)}</div>`:""}</div>${!bulk&&i.s==="need"?`<div class="pc pcs"><button onclick="adj(${i.id},-1)">−</button><b>${i.cs||0}</b><button onclick="adj(${i.id},1)">＋</button></div>`:""}${bulk?"":`<div class="sb"><button class="rp ${rpC(i)} ${i.s?"on":""}" onclick="cycS(${i.id})">${rpL(i)}</button><button class="ovb ${i.ov?"on":""}" onclick="togOv(${i.id})">⚠️</button></div>`}</div>`}
-function openForm(){fm.classList.add("pop");bd.style.display="block"}
+function openForm(){shFill();fm.classList.add("pop");bd.style.display="block"}
 function closeForm(){fm.classList.remove("pop");bd.style.display="none";clearForm()}
 async function zip(s){const cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin="";b.forEach(x=>bin+=String.fromCharCode(x));return btoa(bin)}
 async function unzip(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
