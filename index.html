@@ -546,7 +546,7 @@ function sxRow(i){const open=cfg.bc||bo6[i.id];
 function lpRaw(i){for(const r of posts){if(r.rows.some(x=>(x.jan&&i.jan?jk(x.jan)===jk(i.jan):x.n===i.n)))return r.d.slice(0,10)}return ""}
 function recentPost(i){const d=lpRaw(i);if(!d)return false;const t=new Date(d+"T00:00:00"),n=new Date();n.setHours(0,0,0,0);return (n-t)/864e5<=30}
 let ovMsg="",ovHelp=false;
-function rdLive(i){if(!i.rdc)return false;const t=new Date(i.rdc+"T00:00:00"),n=new Date();n.setHours(0,0,0,0);return (n-t)/864e5<7}
+function rdLive(i){if(!i.rdc)return false;const t=new Date(i.rdc+"T00:00:00"),n=new Date();n.setHours(0,0,0,0);return (n-t)/864e5<3}
 function rdChk(){let ch=false;items.forEach(i=>{if(i.rdc&&!rdLive(i)){i.rdc="";ch=true}});if(ch)save()}
 function odTxt(i){const od=i.od||[];if(!od.length)return "発注済みの入力はありません";return "発注済 合計 "+odS(i)+"本: "+od.slice().sort((a,b)=>a.d.localeCompare(b.d)).map(e=>wdL(e.d)+" +"+e.q+"本"+(i.pk>0&&e.q>=i.pk?"("+(e.q/i.pk).toFixed(1).replace(/\.0$/,"")+"ケース)":"")).join(" / ")}
 function odAdd(id){const i=items.find(x=>x.id===id),el=document.getElementById("odin"+id),q=Math.round(+el.value);if(!(q>0)){ovMsg=i.n+": 発注数(本)を入力してください";render();return}
