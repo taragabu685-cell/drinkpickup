@@ -214,7 +214,7 @@ input,select,textarea{font-size:16px;font-family:inherit}
 <script>
 const KEY="hojuu-v2",OLD="hojuu-v1";
 const DA=["冷ケース","2L常温","アイスコーヒー･野菜ジュース","エンド棚","常温水","ゼリー"];
-let sf={need:false,ov:false,stk:false,fl:false},pxE=false;
+let sf={need:false,ov:false,stk:false,fl:false},pxE=false,ovE=false;
 let items=[],areas=DA.slice(),memos=[],tasks=[],jstock=[],posts=[],cfg={rate:65,rd:"round",ovr:50},mfv="",editM=null,cat="すべて",view=0,gmode="shelf",q="",editId=null,cl=[],scanT="",scanning=false,stream=null,zr=null;
 const norm=(x,i)=>({id:x.id||Date.now()+i,n:String(x.n||""),mk:String(x.mk||""),jan:String(x.jan||""),pk:Number(x.pk)||0,sr:String(x.sr||""),g:String(x.g||""),wsv:x.wsv!==undefined&&x.wsv!==null&&x.wsv!==""?+x.wsv:(()=>{const k=Object.keys(x.ws||{}).sort().pop();return k?+x.ws[k]:null})(),pxn:x.pxn!==undefined&&x.pxn!==null&&x.pxn!==""?+x.pxn:null,pf:!!x.pf,pd:!!x.pd,px:!!x.px,wd:String(x.wd||""),ss:x.ss!==undefined&&x.ss!==null&&x.ss!==""?+x.ss:null,ssd:String(x.ssd||""),ct:!!x.ct,od:Array.isArray(x.od)?x.od.filter(e=>e&&e.d&&+e.q>0).map(e=>({d:String(e.d),c:+e.c||0,q:+e.q})):[],cj:String(x.cj||""),rdc:String(x.rdc||""),fl:!!x.fl,fc:x.fc!==undefined&&x.fc!==null&&x.fc!==""?+x.fc:null,ov:!!x.ov,rc:x.rc!==undefined&&x.rc!==null&&x.rc!==""?+x.rc:null,rb:x.rb!==undefined&&x.rb!==null&&x.rb!==""?+x.rb:null,rd:String(x.rd||""),dv:x.dv!==undefined&&x.dv!==null&&x.dv!==""?+x.dv:null,dvd:String(x.dvd||""),a:String(x.a||""),sh:String(x.sh||""),s:x.s==="need"?"need":"",cs:Number(x.cs)||0,m:String(x.m||"")});
 const sample=[["伊右衛門 600ml","サントリー","冷ケース","2"],["綾鷹 525ml","コカ・コーラ","冷ケース","2"],["午後の紅茶 500ml","キリン","冷ケース","3"],["サントリー天然水 2L","サントリー","2L常温",""],["いろはす 555ml","コカ・コーラ","常温水",""],["BOSS 無糖 1L","サントリー","アイスコーヒー･野菜ジュース",""]].map((a,i)=>norm({id:i+1,n:a[0],mk:a[1],a:a[2],sh:a[3]},i));
@@ -264,7 +264,7 @@ function delArea(){const n=prompt("削除する売り場の名前\n"+areas.join(
 function resetDay(){if(confirm("全商品の状態をリセットしますか?")){items.forEach(i=>{i.s="";i.m="";i.cs=0});save();render()}}
 function render(){
  cl=["すべて",...areas];if(items.some(i=>!i.a))cl.push("未設定");if(!cl.includes(cat))cat="すべて";
- sfl.style.display=view===0||view===6?"":"none";sfl.innerHTML=view===6?`<button class="${pxE?"on":""}" onclick="togPxE()">指数未記入</button>`:[["need","要補充"],["ov","過多"],["stk","在庫"],["fl","チラシ"]].map(a=>`<button class="${sf[a[0]]?"on":""}" onclick="togSf('${a[0]}')">${a[1]}</button>`).join("");
+ sfl.style.display=view===0||view===6||view===8?"":"none";sfl.innerHTML=view===8?`<button class="${ovE?"on":""}" onclick="togOvE()">週販・在庫 未入力</button>`:view===6?`<button class="${pxE?"on":""}" onclick="togPxE()">指数未記入</button>`:[["need","要補充"],["ov","過多"],["stk","在庫"],["fl","チラシ"]].map(a=>`<button class="${sf[a[0]]?"on":""}" onclick="togSf('${a[0]}')">${a[1]}</button>`).join("");
  chips.innerHTML=(view!==0&&view!==2&&view!==6&&view!==8)?"":cl.map((k,i)=>`<button class="${k===cat?"on":""}" onclick="setCat(${i})">${esc(k)}</button>`).join("");
  pForm.style.display=view===2?"":"none";pmsg.textContent=pmT;pall.textContent="ピックリストを全リセット(要補充"+items.filter(i=>i.s==="need").length+"件)";pclr.textContent="ピック済をすべて未設定に戻す("+items.filter(i=>i.s==="need"&&i.pd).length+"件)";gm.style.display=(view===0||view===2)?"":"none";gm.value=view===2?pm:gmode;
  const keepA=fA.value;fA.innerHTML=[...areas,""].map(a=>`<option value="${esc(a)}">${esc(a||"売り場未設定")}</option>`).join("");fA.value=keepA;
@@ -285,7 +285,7 @@ function render(){
   {const ks=Object.keys(G).sort();ks.forEach(k=>G[k].a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja")));sxOrd=ks.flatMap(k=>G[k].a)}
   if(o1>=0){listEl.innerHTML="";oneR();return}
   listEl.innerHTML=Object.keys(G).sort().map(k=>{const g=G[k];g.a.sort((a,b)=>shK(a.sh).localeCompare(shK(b.sh))||a.n.localeCompare(b.n,"ja"));return `<div class="gh ca" style="--h:${HUE[g.hu%HUE.length]}"><span>${esc(g.n)}</span><span>${g.a.length}件</span></div>`+g.a.map(sxRow).join("")}).join("")||`<div class="empty">${cfg.only===false?"該当する商品がありません":"指数投稿の対象がありません。売場巡回タブで商品の「指数」ボタンを押すと、ここに出ます"}</div>`;return}
- if(view===8){const L=items.filter(i=>(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.cj+i.sr).toLowerCase().includes(q))&&i.ov);rdChk();L.sort((a,b)=>(rdLive(a)?1:0)-(rdLive(b)?1:0)||(ovX(b)==null?-1e9:ovX(b))-(ovX(a)==null?-1e9:ovX(a))||a.n.localeCompare(b.n,"ja"));
+ if(view===8){const L=items.filter(i=>(cat==="すべて"||(i.a||"未設定")===cat)&&(!q||(i.n+i.mk+i.jan+i.cj+i.sr).toLowerCase().includes(q))&&i.ov&&(!ovE||i.wsv==null||i.ss==null));rdChk();L.sort((a,b)=>(rdLive(a)?1:0)-(rdLive(b)?1:0)||(ovX(b)==null?-1e9:ovX(b))-(ovX(a)==null?-1e9:ovX(a))||a.n.localeCompare(b.n,"ja"));
   sp.textContent="";const nOv=items.filter(i=>i.ov).length;
   listEl.innerHTML=`<div class="item"><div class="sxg"><label>目安率(週販の)<input class="sin" type="number" inputmode="numeric" value="${cfg.ovr||50}" onchange="setOvr(this.value)">%</label><button class="sec" style="border:1px solid var(--bd);border-radius:50%;width:30px;height:30px;padding:0;text-decoration:none" onclick="togOvHelp()">？</button></div>${ovHelp?`<div class="loc" style="line-height:1.7;margin-top:6px;color:var(--tx)"><b>数字の見方</b><br>・発注済 = 確定した発注数を、1日ずつ「今日の発注」に入れて加算(同じ日は足し算)。本数で入力<br>・見込み在庫 = システム在庫 + 発注済<br>・発注を減らす目安 = 過多の本数(発注済の範囲まで)<br>・1日平均 = 週販 ÷ 7<br>・目安 = 週販 × 目安率(上の%)<br>・過多 = (システム在庫 + 発注済) − 目安(多い順に並びます)<br>・在庫○日分 = システム在庫 ÷ 1日平均<br>・表 = 表在庫(ケース) × 入数<br>・裏 = システム在庫 − 表(0以下は0)<br>・裏の○日分 = 裏 ÷ 1日平均<br>・「過多」をONにすると、1ヶ月以内に指数投稿がない商品は指数もONになります<br>・自動発注分を後から減らす商品の管理用です</div>`:""}${ovMsg?`<div class="loc" style="color:#c0392b">${esc(ovMsg)}</div>`:""}</div>`+(L.map(ovRow).join("")||`<div class="empty">該当する商品がありません</div>`);return}
  if(view===5){jm.textContent=jmsg;
@@ -613,7 +613,8 @@ function togFl(id){const i=items.find(x=>x.id===id);i.fl=!i.fl;save();render()}
 function togSf(k){sf[k]=!sf[k];render()}
 function sfOk(i){return !sfAny()||(sf.need&&i.s==="need")||(sf.ov&&i.ov)||(sf.stk&&hasT(i.id,0))||(sf.fl&&i.fl)}
 function togPxE(){pxE=!pxE;render()}
-function resetF(){pxE=false;sf={need:false,ov:false,stk:false,fl:false};q="";qin.value="";cat="すべて";mfv="";render()}
+function togOvE(){ovE=!ovE;render()}
+function resetF(){pxE=false;ovE=false;sf={need:false,ov:false,stk:false,fl:false};q="";qin.value="";cat="すべて";mfv="";render()}
 function startBulk(){tab(0);bulk=true;bAr=true;bs={};render();window.scrollTo(0,0)}
 function togB(id){bs[id]=!bs[id];bn.textContent=bcnt()+"件選択"}
 let bgrp=[];
