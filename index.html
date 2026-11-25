@@ -586,8 +586,9 @@ let phOn=false,pho={};
 function nowS(){const d=new Date(),p=v=>String(v).padStart(2,"0");return today()+" "+p(d.getHours())+":"+p(d.getMinutes())}
 function finishPost(){const seen={},L=items.filter(i=>i.px).filter(i=>{if(i.g){if(seen[i.g])return false;seen[i.g]=1}return true});
  if(!L.length){alert("指数投稿の対象がありません。売場巡回タブで商品の「指数」を押して対象にしてください。");return}
- const np=L.filter(i=>i.pxn==null).length;
- if(!confirm(L.length+"品を投稿完了として履歴に保存します。"+(np?"\n(投稿数が未入力の商品が "+np+"品 あります)":"")+"\n保存後、指数の対象の印を外します(週販と投稿数は残ります)。"))return;
+ const np=L.filter(i=>i.pxn==null),nr=np.filter(i=>i.wsv!=null).length,nn=np.length-nr;
+ if(!confirm(L.length+"品を投稿完了として履歴に保存します。"+(nr?"\n投稿数が未入力の "+nr+"品 は、参考値(週販×"+(cfg.rate||65)+"%)で記録します。":"")+(nn?"\n(週販も未入力の "+nn+"品 は投稿数なしのまま記録します)":"")+"\n保存後、指数の対象の印を外します(週販と投稿数は残ります)。"))return;
+ np.forEach(i=>{if(i.wsv!=null)i.pxn=idxOf(i.wsv)});
  posts.unshift({id:Date.now(),d:nowS(),rows:L.map(i=>({n:i.n,mk:i.mk,jan:i.jan,w:i.wsv==null?null:i.wsv,p:i.pxn==null?null:i.pxn,wd:i.wd||""}))});
  items.forEach(i=>{i.pf=false;i.px=false});phOn=true;save();render();window.scrollTo(0,0)}
 function togPh(){phOn=!phOn;render();window.scrollTo(0,0)}
